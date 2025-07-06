@@ -57,7 +57,7 @@ export default function CardSelectionScreen({
       <h1 className='text-2xl font-bold mb-4'>
         Player {currentPlayer}, pick {cardsPerPlayer} cards
       </h1>
-      <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4'>
+      <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4'>
         {availableCards.map((card) => (
           <div
             key={card.word}

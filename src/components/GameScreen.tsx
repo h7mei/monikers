@@ -24,6 +24,8 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
   const [timer, setTimer] = useState(60)
   const [isRoundActive, setIsRoundActive] = useState(false)
   const [skipped, setSkipped] = useState(false)
+  const [round, setRound] = useState(1)
+  const [roundDescription, setRoundDescription] = useState('Round 1: Free Talking')
 
   useEffect(() => {
     setCards([...initialCards].sort(() => 0.5 - Math.random()))
@@ -45,12 +47,23 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
       setScores(newScores)
       setGuessedCards([])
       if (remainingCards.length === 0) {
-        onGameEnd(newScores)
+        if (round < 3) {
+          const newRound = round + 1
+          setRound(newRound)
+          let newDescription = ''
+          if (newRound === 2) newDescription = 'Round 2: One Word'
+          else if (newRound === 3) newDescription = 'Round 3: Expressions'
+          setRoundDescription(newDescription)
+          setCards([...initialCards].sort(() => 0.5 - Math.random()))
+          setCurrentTeam('team1')
+        } else {
+          onGameEnd(newScores)
+        }
       } else {
         setCurrentTeam(currentTeam === 'team1' ? 'team2' : 'team1')
       }
     },
-    [currentTeam, onGameEnd, scores]
+    [currentTeam, onGameEnd, scores, round, initialCards]
   )
 
   useEffect(() => {
@@ -104,6 +117,7 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
   if (!isRoundActive) {
     return (
       <div className='flex flex-col items-center justify-center h-svh'>
+        <h2 className='text-2xl font-bold mb-2'>{roundDescription}</h2>
         <h1 className='text-4xl font-bold mb-8'>
           Team {currentTeam === 'team1' ? 1 : 2}&apos;s Turn
         </h1>
