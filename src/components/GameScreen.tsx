@@ -29,24 +29,29 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
     setCards([...initialCards].sort(() => 0.5 - Math.random()))
   }, [initialCards])
 
-  const endRound = useCallback(() => {
-    setIsRoundActive(false)
-    const newScores = {
-      ...scores,
-      [currentTeam]: [...scores[currentTeam], ...guessedCards],
-    }
-    setScores(newScores)
-    const remainingCards = cards.filter(
-      (c) => !guessedCards.find((gc) => gc.word === c.word)
-    )
-    setCards(remainingCards)
-    setGuessedCards([])
-    if (remainingCards.length === 0) {
-      onGameEnd(newScores)
-    } else {
-      setCurrentTeam(currentTeam === 'team1' ? 'team2' : 'team1')
-    }
-  }, [cards, currentTeam, guessedCards, onGameEnd, scores])
+  const endRound = useCallback(
+    ({
+      remainingCards = [],
+      updatedGuessedCards = [],
+    }: {
+      remainingCards?: Card[]
+      updatedGuessedCards?: Card[]
+    }) => {
+      setIsRoundActive(false)
+      const newScores = {
+        ...scores,
+        [currentTeam]: [...scores[currentTeam], ...updatedGuessedCards],
+      }
+      setScores(newScores)
+      setGuessedCards([])
+      if (remainingCards.length === 0) {
+        onGameEnd(newScores)
+      } else {
+        setCurrentTeam(currentTeam === 'team1' ? 'team2' : 'team1')
+      }
+    },
+    [currentTeam, onGameEnd, scores]
+  )
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -55,10 +60,16 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
         setTimer((prev) => prev - 1)
       }, 1000)
     } else if (isRoundActive && timer === 0) {
-      endRound()
+      const [currentCard, ...remainingCards] = cards
+      const nextRoundCards = [...remainingCards, currentCard]
+      setCards(nextRoundCards)
+      endRound({
+        remainingCards: nextRoundCards,
+        updatedGuessedCards: guessedCards,
+      })
     }
     return () => clearInterval(interval)
-  }, [isRoundActive, timer, endRound])
+  }, [isRoundActive, timer, endRound, cards, guessedCards])
 
   const startRound = () => {
     setIsRoundActive(true)
@@ -69,10 +80,15 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
   const handleGuess = () => {
     if (!isRoundActive || cards.length === 0) return
     const [currentCard, ...remainingCards] = cards
-    setGuessedCards([...guessedCards, currentCard])
+    const updatedGuessedCards = [...guessedCards, currentCard]
+
+    setGuessedCards(updatedGuessedCards)
     setCards(remainingCards)
     if (remainingCards.length === 0) {
-      endRound()
+      endRound({
+        remainingCards,
+        updatedGuessedCards
+      })
     }
   }
 

@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import cards from '@/data/cards.json'
+import cards1 from '@/data/cards-level1.json'
+import cards2 from '@/data/cards-level2.json'
+import cards3 from '@/data/cards-level3.json'
 import { Card } from './GameScreen'
 
 interface Props {
@@ -9,6 +11,8 @@ interface Props {
   cardsPerPlayer: number
   onSelectionEnd: (cards: Card[]) => void
 }
+
+const cards: Card[] = [...cards1, ...cards2, ...cards3]
 
 export default function CardSelectionScreen({
   players,
@@ -21,9 +25,9 @@ export default function CardSelectionScreen({
   const [availableCards, setAvailableCards] = useState<Card[]>([])
 
   useEffect(() => {
-    // Shuffle cards and get 3x the amount needed for the current player
+    // Shuffle cards and get 2x the amount needed for the current player
     const shuffled = [...cards].sort(() => 0.5 - Math.random())
-    setAvailableCards(shuffled.slice(0, cardsPerPlayer * 3))
+    setAvailableCards(shuffled.slice(0, cardsPerPlayer * 2))
   }, [currentPlayer, cardsPerPlayer])
 
   const handleCardSelect = (card: Card) => {
@@ -61,6 +65,7 @@ export default function CardSelectionScreen({
             onClick={() => handleCardSelect(card)}
           >
             <h2 className='font-bold text-center text-xl'>{card.word}</h2>
+            <p className='text-center mb-4'>Level {card.level}</p>
             <p>{card.description}</p>
           </div>
         ))}

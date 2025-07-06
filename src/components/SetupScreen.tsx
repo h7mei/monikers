@@ -18,7 +18,7 @@ export default function SetupScreen({ onStartGame }: Props) {
         <div className='mb-4'>
           <label
             htmlFor='players'
-            className='block text-sm font-medium text-gray-700'
+            className='block text-sm font-medium text-gray-50'
           >
             Number of Players
           </label>
@@ -33,7 +33,7 @@ export default function SetupScreen({ onStartGame }: Props) {
         <div className='mb-8'>
           <label
             htmlFor='cards'
-            className='block text-sm font-medium text-gray-700'
+            className='block text-sm font-medium text-gray-50'
           >
             Cards per Player
           </label>
