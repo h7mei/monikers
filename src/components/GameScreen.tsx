@@ -54,7 +54,7 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
       interval = setInterval(() => {
         setTimer((prev) => prev - 1)
       }, 1000)
-    } else if (timer === 0) {
+    } else if (isRoundActive && timer === 0) {
       endRound()
     }
     return () => clearInterval(interval)
@@ -71,6 +71,9 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
     const [currentCard, ...remainingCards] = cards
     setGuessedCards([...guessedCards, currentCard])
     setCards(remainingCards)
+    if (remainingCards.length === 0) {
+      endRound()
+    }
   }
 
   const handleSkip = () => {
