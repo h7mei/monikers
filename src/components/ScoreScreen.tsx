@@ -37,7 +37,7 @@ export default function ScoreScreen({ scores, onPlayAgain }: Props) {
       </div>
       <button
         onClick={onPlayAgain}
-        className="mt-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full text-2xl"
+        className="mt-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full text-2xl shadow-xl shadow-blue-500/20"
       >
         Play Again
       </button>

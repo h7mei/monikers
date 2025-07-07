@@ -125,7 +125,7 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
         </h1>
         <button
           onClick={startRound}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full text-2xl"
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full text-2xl cursor-pointer shadow-xl shadow-blue-500/20"
         >
           Start Round
         </button>
@@ -146,13 +146,13 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
         <button
           onClick={handleSkip}
           disabled={skipped}
-          className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+          className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full disabled:opacity-50"
         >
           Skip
         </button>
         <button
           onClick={handleGuess}
-          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full shadow-xl shadow-green-500/20"
         >
           Guessed
         </button>

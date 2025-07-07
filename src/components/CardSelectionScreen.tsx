@@ -78,13 +78,15 @@ export default function CardSelectionScreen({
         ))}
       </div>
       {selectedCards.length === cardsPerPlayer && (
-        <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded fixed bottom-4 right-4 cursor-pointer"
-          onClick={handleNextPlayer}
-          disabled={selectedCards.length !== cardsPerPlayer}
-        >
-          {currentPlayer < players ? 'Next Player' : 'Start Game'}
-        </button>
+        <div className="bg-gradient-to-t from-gray-950 from-25% to-gray-900/0 p-14 w-full fixed bottom-0 flex justify-center">
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full cursor-pointer shadow-xl shadow-blue-500/20"
+            onClick={handleNextPlayer}
+            disabled={selectedCards.length !== cardsPerPlayer}
+          >
+            {currentPlayer < players ? 'Next Player' : 'Done'}
+          </button>
+        </div>
       )}
     </div>
   );

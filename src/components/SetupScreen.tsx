@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function SetupScreen({ onStartGame }: Props) {
-  const [players, setPlayers] = useState(2);
+  const [players, setPlayers] = useState(4);
   const [cards, setCards] = useState(5);
 
   return (
@@ -46,12 +46,13 @@ export default function SetupScreen({ onStartGame }: Props) {
           />
         </div>
         <button
-          className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full shadow-xl shadow-blue-500/20"
           onClick={() => onStartGame(players, cards)}
         >
           Start Game
         </button>
       </div>
+      <div className="fixed bottom-8">© arfianadam</div>
     </div>
   );
 }
