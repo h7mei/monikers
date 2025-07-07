@@ -34,7 +34,7 @@ export default function CardSelectionScreen({
         : cards;
     // Shuffle cards and get 2x the amount needed for the current player
     const shuffled = [...cardsToShuffle].sort(() => 0.5 - Math.random());
-    setAvailableCards(shuffled.slice(0, cardsPerPlayer * 2));
+    setAvailableCards(shuffled.slice(0, cardsPerPlayer + 2));
   }, [currentPlayer, cardsPerPlayer, allSelectedCards]);
 
   const handleCardSelect = (card: Card) => {

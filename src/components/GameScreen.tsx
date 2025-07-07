@@ -23,7 +23,7 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
   const [currentTeam, setCurrentTeam] = useState('team1');
   const [timer, setTimer] = useState(60);
   const [isRoundActive, setIsRoundActive] = useState(false);
-  const [skipped, setSkipped] = useState(false);
+  const [canSkip, setCanSkip] = useState(true);
   const [round, setRound] = useState(1);
   const [roundDescription, setRoundDescription] = useState(
     'Round 1: Free Talking'
@@ -89,7 +89,7 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
   const startRound = () => {
     setIsRoundActive(true);
     setTimer(60);
-    setSkipped(false);
+    setCanSkip(true);
   };
 
   const handleGuess = () => {
@@ -99,6 +99,7 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
 
     setGuessedCards(updatedGuessedCards);
     setCards(remainingCards);
+    setCanSkip(true); // Reset skip ability after correct guess
     if (remainingCards.length === 0) {
       endRound({
         remainingCards,
@@ -108,8 +109,8 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
   };
 
   const handleSkip = () => {
-    if (!isRoundActive || skipped || cards.length <= 1) return;
-    setSkipped(true);
+    if (!isRoundActive || !canSkip || cards.length <= 1) return;
+    setCanSkip(false);
     const [currentCard, ...remainingCards] = cards;
     setCards([...remainingCards, currentCard]); // Move to the back of the deck
   };
@@ -145,7 +146,7 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
       <div className="w-full sm:w-3xl flex justify-between">
         <button
           onClick={handleSkip}
-          disabled={skipped}
+          disabled={!canSkip}
           className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full disabled:opacity-50"
         >
           Skip
@@ -157,9 +158,9 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
           Guessed
         </button>
       </div>
-      {skipped && (
+      {!canSkip && (
         <p className="text-sm text-gray-500 mt-4">
-          You can only skip once per round.
+          Skip again after guessing a word correctly.
         </p>
       )}
     </div>
