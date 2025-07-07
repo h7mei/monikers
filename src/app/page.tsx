@@ -1,44 +1,44 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import SetupScreen from '@/components/SetupScreen'
-import CardSelectionScreen from '@/components/CardSelectionScreen'
-import GameScreen, { Card } from '@/components/GameScreen'
-import ScoreScreen from '@/components/ScoreScreen'
+import { useState } from 'react';
+import SetupScreen from '@/components/SetupScreen';
+import CardSelectionScreen from '@/components/CardSelectionScreen';
+import GameScreen, { Card } from '@/components/GameScreen';
+import ScoreScreen from '@/components/ScoreScreen';
 
 export default function Home() {
-  const [stage, setStage] = useState('setup')
-  const [players, setPlayers] = useState(0)
-  const [cardsPerPlayer, setCardsPerPlayer] = useState(0)
-  const [allCards, setAllCards] = useState<Card[]>([])
-  const [scores, setScores] = useState<Record<string, Card[]>>({})
+  const [stage, setStage] = useState('setup');
+  const [players, setPlayers] = useState(0);
+  const [cardsPerPlayer, setCardsPerPlayer] = useState(0);
+  const [allCards, setAllCards] = useState<Card[]>([]);
+  const [scores, setScores] = useState<Record<string, Card[]>>({});
 
   const handleGameStart = (playerCount: number, cardCount: number) => {
-    setPlayers(playerCount)
-    setCardsPerPlayer(cardCount)
-    setStage('card-selection')
-  }
+    setPlayers(playerCount);
+    setCardsPerPlayer(cardCount);
+    setStage('card-selection');
+  };
 
   const handleCardSelectionEnd = (selectedCards: Card[]) => {
-    setAllCards(selectedCards)
-    setStage('game')
-  }
+    setAllCards(selectedCards);
+    setStage('game');
+  };
 
   const handleGameEnd = (finalScores: Record<string, Card[]>) => {
-    setScores(finalScores)
-    setStage('score')
-  }
+    setScores(finalScores);
+    setStage('score');
+  };
 
   const handlePlayAgain = () => {
-    setStage('setup')
-    setPlayers(0)
-    setCardsPerPlayer(0)
-    setAllCards([])
-    setScores({})
-  }
+    setStage('setup');
+    setPlayers(0);
+    setCardsPerPlayer(0);
+    setAllCards([]);
+    setScores({});
+  };
 
   return (
-    <main className='bg-gray-900'>
+    <main className="bg-gray-900">
       {stage === 'setup' && <SetupScreen onStartGame={handleGameStart} />}
       {stage === 'card-selection' && (
         <CardSelectionScreen
@@ -54,5 +54,5 @@ export default function Home() {
         <ScoreScreen scores={scores} onPlayAgain={handlePlayAgain} />
       )}
     </main>
-  )
+  );
 }
