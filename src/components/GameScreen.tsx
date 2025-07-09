@@ -8,29 +8,37 @@ export interface Card {
   description: string;
 }
 
+export type ScoresByRound = Record<string, Record<number, Card[]>>;
+
 interface Props {
   initialCards: Card[];
-  onGameEnd: (scores: Record<string, Card[]>) => void;
+  onGameEnd: (scores: ScoresByRound) => void;
+  onRoundEnd: (scores: ScoresByRound) => void;
+  round: number;
+  scores: ScoresByRound;
 }
 
-export default function GameScreen({ initialCards, onGameEnd }: Props) {
+export default function GameScreen({
+  initialCards,
+  onGameEnd,
+  onRoundEnd,
+  round,
+  scores: initialScores,
+}: Props) {
   const [cards, setCards] = useState<Card[]>([]);
   const [guessedCards, setGuessedCards] = useState<Card[]>([]);
   const cardsRef = useRef<Card[]>([]);
   const guessedCardsRef = useRef<Card[]>([]);
-  const [scores, setScores] = useState<Record<string, Card[]>>({
-    team1: [],
-    team2: [],
-  });
+  const [scores, setScores] = useState<ScoresByRound>(initialScores);
   const [currentTeam, setCurrentTeam] = useState('team1');
-  const [timer, setTimer] = useState(60);
+  const [timer, setTimer] = useState(5);
   const [isRoundActive, setIsRoundActive] = useState(false);
   const [canSkip, setCanSkip] = useState(true);
   const [isGuessButtonDisabled, setIsGuessButtonDisabled] = useState(false);
-  const [round, setRound] = useState(1);
-  const [roundDescription, setRoundDescription] = useState(
-    'Round 1: Free Talking'
-  );
+
+  const roundDescription = `Round ${round}: ${
+    round === 1 ? 'Free Talking' : round === 2 ? 'One Word' : 'Expressions'
+  }`;
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -54,22 +62,21 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
       updatedGuessedCards?: Card[];
     }) => {
       setIsRoundActive(false);
-      const newScores = {
+      const newScores: ScoresByRound = {
         ...scores,
-        [currentTeam]: [...scores[currentTeam], ...updatedGuessedCards],
+        [currentTeam]: {
+          ...scores[currentTeam],
+          [round]: [
+            ...(scores[currentTeam][round] || []),
+            ...updatedGuessedCards,
+          ],
+        },
       };
       setScores(newScores);
       setGuessedCards([]);
       if (remainingCards.length === 0) {
         if (round < 3) {
-          const newRound = round + 1;
-          setRound(newRound);
-          let newDescription = '';
-          if (newRound === 2) newDescription = 'Round 2: One Word';
-          else if (newRound === 3) newDescription = 'Round 3: Expressions';
-          setRoundDescription(newDescription);
-          setCards([...initialCards].sort(() => 0.5 - Math.random()));
-          setCurrentTeam('team1');
+          onRoundEnd(newScores);
         } else {
           onGameEnd(newScores);
         }
@@ -77,7 +84,7 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
         setCurrentTeam(currentTeam === 'team1' ? 'team2' : 'team1');
       }
     },
-    [currentTeam, onGameEnd, scores, round, initialCards]
+    [currentTeam, onGameEnd, scores, round, onRoundEnd]
   );
 
   useEffect(() => {
@@ -102,7 +109,7 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
 
   const startRound = () => {
     setIsRoundActive(true);
-    setTimer(60);
+    setTimer(5);
     setCanSkip(true);
   };
 

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import SetupScreen from '@/components/SetupScreen';
 import CardSelectionScreen from '@/components/CardSelectionScreen';
-import GameScreen, { Card } from '@/components/GameScreen';
+import GameScreen, { Card, ScoresByRound } from '@/components/GameScreen';
 import ScoreScreen from '@/components/ScoreScreen';
 
 export default function Home() {
@@ -11,7 +11,11 @@ export default function Home() {
   const [players, setPlayers] = useState(0);
   const [cardsPerPlayer, setCardsPerPlayer] = useState(0);
   const [allCards, setAllCards] = useState<Card[]>([]);
-  const [scores, setScores] = useState<Record<string, Card[]>>({});
+  const [scores, setScores] = useState<ScoresByRound>({
+    team1: {},
+    team2: {},
+  });
+  const [round, setRound] = useState(1);
 
   const handleGameStart = (playerCount: number, cardCount: number) => {
     setPlayers(playerCount);
@@ -24,7 +28,17 @@ export default function Home() {
     setStage('game');
   };
 
-  const handleGameEnd = (finalScores: Record<string, Card[]>) => {
+  const handleRoundEnd = (roundScores: ScoresByRound) => {
+    setScores(roundScores);
+    setStage('round-score');
+  };
+
+  const handleNextRound = () => {
+    setRound((prev) => prev + 1);
+    setStage('game');
+  };
+
+  const handleGameEnd = (finalScores: ScoresByRound) => {
     setScores(finalScores);
     setStage('score');
   };
@@ -34,7 +48,11 @@ export default function Home() {
     setPlayers(0);
     setCardsPerPlayer(0);
     setAllCards([]);
-    setScores({});
+    setScores({
+      team1: {},
+      team2: {},
+    });
+    setRound(1);
   };
 
   return (
@@ -48,10 +66,21 @@ export default function Home() {
         />
       )}
       {stage === 'game' && (
-        <GameScreen initialCards={allCards} onGameEnd={handleGameEnd} />
+        <GameScreen
+          initialCards={allCards}
+          onGameEnd={handleGameEnd}
+          onRoundEnd={handleRoundEnd}
+          round={round}
+          scores={scores}
+        />
       )}
-      {stage === 'score' && (
-        <ScoreScreen scores={scores} onPlayAgain={handlePlayAgain} />
+      {(stage === 'score' || stage === 'round-score') && (
+        <ScoreScreen
+          scores={scores}
+          onPlayAgain={handlePlayAgain}
+          onNextRound={handleNextRound}
+          isGameOver={stage === 'score'}
+        />
       )}
     </main>
   );
