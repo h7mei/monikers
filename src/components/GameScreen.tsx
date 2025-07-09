@@ -10,9 +10,6 @@ export interface Card {
 
 export type ScoresByRound = Record<string, Record<number, Card[]>>;
 
-const bellSound = new Audio('/sounds/bell.wav');
-const ringSound = new Audio('/sounds/ring.wav');
-
 interface Props {
   initialCards: Card[];
   onGameEnd: (scores: ScoresByRound) => void;
@@ -21,7 +18,7 @@ interface Props {
   scores: ScoresByRound;
 }
 
-const ROUND_DURATION = 5;
+const ROUND_DURATION = 60;
 
 export default function GameScreen({
   initialCards,
@@ -40,10 +37,22 @@ export default function GameScreen({
   const [isRoundActive, setIsRoundActive] = useState(false);
   const [canSkip, setCanSkip] = useState(true);
   const [isGuessButtonDisabled, setIsGuessButtonDisabled] = useState(false);
+  const sounds = useRef<{
+    bell: HTMLAudioElement;
+    ring: HTMLAudioElement;
+  } | null>(null);
 
   const roundDescription = `Round ${round}: ${
     round === 1 ? 'Free Talking' : round === 2 ? 'One Word' : 'Expressions'
   }`;
+
+  useEffect(() => {
+    // Initialize sounds
+    sounds.current = {
+      bell: new Audio('/sounds/bell.wav'),
+      ring: new Audio('/sounds/ring.wav'),
+    };
+  }, []);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -67,7 +76,7 @@ export default function GameScreen({
       updatedGuessedCards?: Card[];
     }) => {
       setIsRoundActive(false);
-      ringSound.play();
+      sounds.current?.ring.play();
       const newScores: ScoresByRound = {
         ...scores,
         [currentTeam]: {
@@ -123,7 +132,7 @@ export default function GameScreen({
     if (!isRoundActive || cards.length === 0 || isGuessButtonDisabled) return;
 
     setIsGuessButtonDisabled(true);
-    bellSound.play();
+    sounds.current?.bell.play();
 
     const [currentCard, ...remainingCards] = cards;
     const updatedGuessedCards = [...guessedCards, currentCard];
