@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export interface Card {
   level: number;
@@ -16,6 +16,8 @@ interface Props {
 export default function GameScreen({ initialCards, onGameEnd }: Props) {
   const [cards, setCards] = useState<Card[]>([]);
   const [guessedCards, setGuessedCards] = useState<Card[]>([]);
+  const cardsRef = useRef<Card[]>([]);
+  const guessedCardsRef = useRef<Card[]>([]);
   const [scores, setScores] = useState<Record<string, Card[]>>({
     team1: [],
     team2: [],
@@ -24,10 +26,20 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
   const [timer, setTimer] = useState(60);
   const [isRoundActive, setIsRoundActive] = useState(false);
   const [canSkip, setCanSkip] = useState(true);
+  const [isGuessButtonDisabled, setIsGuessButtonDisabled] = useState(false);
   const [round, setRound] = useState(1);
   const [roundDescription, setRoundDescription] = useState(
     'Round 1: Free Talking'
   );
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    cardsRef.current = cards;
+  }, [cards]);
+
+  useEffect(() => {
+    guessedCardsRef.current = guessedCards;
+  }, [guessedCards]);
 
   useEffect(() => {
     setCards([...initialCards].sort(() => 0.5 - Math.random()));
@@ -75,16 +87,18 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
         setTimer((prev) => prev - 1);
       }, 1000);
     } else if (isRoundActive && timer === 0) {
-      const [currentCard, ...remainingCards] = cards;
+      const currentCards = cardsRef.current;
+      const currentGuessedCards = guessedCardsRef.current;
+      const [currentCard, ...remainingCards] = currentCards;
       const nextRoundCards = [...remainingCards, currentCard];
       setCards(nextRoundCards);
       endRound({
         remainingCards: nextRoundCards,
-        updatedGuessedCards: guessedCards,
+        updatedGuessedCards: currentGuessedCards,
       });
     }
     return () => clearInterval(interval);
-  }, [isRoundActive, timer, endRound, cards, guessedCards]);
+  }, [isRoundActive, timer, endRound]);
 
   const startRound = () => {
     setIsRoundActive(true);
@@ -93,13 +107,22 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
   };
 
   const handleGuess = () => {
-    if (!isRoundActive || cards.length === 0) return;
+    if (!isRoundActive || cards.length === 0 || isGuessButtonDisabled) return;
+
+    setIsGuessButtonDisabled(true);
+
     const [currentCard, ...remainingCards] = cards;
     const updatedGuessedCards = [...guessedCards, currentCard];
 
     setGuessedCards(updatedGuessedCards);
     setCards(remainingCards);
-    setCanSkip(true); // Reset skip ability after correct guess
+    setCanSkip(true);
+
+    // Re-enable the button after 1 second
+    setTimeout(() => {
+      setIsGuessButtonDisabled(false);
+    }, 1000);
+
     if (remainingCards.length === 0) {
       endRound({
         remainingCards,
@@ -153,7 +176,8 @@ export default function GameScreen({ initialCards, onGameEnd }: Props) {
         </button>
         <button
           onClick={handleGuess}
-          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full shadow-xl shadow-green-500/20"
+          disabled={isGuessButtonDisabled}
+          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full shadow-xl shadow-green-500/20 disabled:opacity-50"
         >
           Guessed
         </button>

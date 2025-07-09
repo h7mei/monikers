@@ -68,7 +68,7 @@ export default function CardSelectionScreen({
         {availableCards.map((card) => (
           <div
             key={card.word}
-            className={`p-4 border rounded-lg cursor-pointer ${selectedCards.find((c) => c.word === card.word) ? 'bg-blue-500' : 'bg-transparent'}`}
+            className={`p-4 border rounded-lg cursor-pointer ${selectedCards.find((c) => c.word === card.word) ? 'bg-blue-500' : 'bg-gray-800'}`}
             onClick={() => handleCardSelect(card)}
           >
             <h2 className="font-bold text-center text-xl">{card.word}</h2>
