@@ -161,6 +161,14 @@ export default function GameScreen({
     setCards([...remainingCards, currentCard]); // Move to the back of the deck
   };
 
+  const handleEndRound = () => {
+    if (!isRoundActive) return;
+    endRound({
+      remainingCards: cards,
+      updatedGuessedCards: guessedCards,
+    });
+  };
+
   const activeCard = cards[0];
 
   if (!isRoundActive) {
@@ -203,6 +211,14 @@ export default function GameScreen({
           className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full shadow-xl shadow-green-500/20 disabled:opacity-50"
         >
           Guessed
+        </button>
+      </div>
+      <div className="fixed bottom-12 flex justify-center w-full">
+        <button
+          onClick={handleEndRound}
+          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full"
+        >
+          End Round
         </button>
       </div>
       {!canSkip && (

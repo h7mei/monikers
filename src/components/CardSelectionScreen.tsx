@@ -23,6 +23,7 @@ export default function CardSelectionScreen({
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
   const [allSelectedCards, setAllSelectedCards] = useState<Card[]>([]);
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const cardsToShuffle =
@@ -54,10 +55,26 @@ export default function CardSelectionScreen({
     if (currentPlayer < players) {
       setCurrentPlayer(currentPlayer + 1);
       setSelectedCards([]);
+      setIsReady(false);
     } else {
       onSelectionEnd(newAllSelectedCards);
     }
   };
+
+  if (!isReady) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-svh px-4 py-6">
+        <h1 className="text-4xl font-bold mb-4">Player {currentPlayer}</h1>
+        <p className="text-xl mb-8">Get ready to pick your cards.</p>
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full cursor-pointer shadow-xl shadow-blue-500/20 text-2xl"
+          onClick={() => setIsReady(true)}
+        >
+          I&apos;m Ready
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-svh px-4 py-6">
