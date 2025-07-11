@@ -123,6 +123,10 @@ export default function GameScreen({
   }, [isRoundActive, timer, endRound]);
 
   const startRound = () => {
+    if (sounds.current?.ring) {
+      sounds.current.ring.pause();
+      sounds.current.ring.currentTime = 0;
+    }
     setIsRoundActive(true);
     setTimer(ROUND_DURATION);
     setCanSkip(true);
@@ -132,7 +136,11 @@ export default function GameScreen({
     if (!isRoundActive || cards.length === 0 || isGuessButtonDisabled) return;
 
     setIsGuessButtonDisabled(true);
-    sounds.current?.bell.play();
+    if (sounds.current?.bell) {
+      sounds.current.bell.pause();
+      sounds.current.bell.currentTime = 0;
+      sounds.current.bell.play();
+    }
 
     const [currentCard, ...remainingCards] = cards;
     const updatedGuessedCards = [...guessedCards, currentCard];

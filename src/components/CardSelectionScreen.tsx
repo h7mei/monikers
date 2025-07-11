@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import cards1 from '@/data/cards-level1.json';
 import cards2 from '@/data/cards-level2.json';
 import cards3 from '@/data/cards-level3.json';
+import cards4 from '@/data/cards-level4.json';
 import { Card } from './GameScreen';
 
 interface Props {
@@ -12,7 +13,7 @@ interface Props {
   onSelectionEnd: (cards: Card[]) => void;
 }
 
-const cards: Card[] = [...cards1, ...cards2, ...cards3];
+const cards: Card[] = [...cards1, ...cards2, ...cards3, ...cards4];
 
 export default function CardSelectionScreen({
   players,
