@@ -64,6 +64,33 @@ export default function GameScreen({
   }, [guessedCards]);
 
   useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    };
+
+    const handlePopState = (e: PopStateEvent) => {
+      window.history.pushState(null, '', window.location.href);
+      const shouldLeave = window.confirm(
+        'Are you sure you want to leave the game?'
+      );
+      if (!shouldLeave) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    window.history.pushState(null, '', window.location.href);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  useEffect(() => {
     setCards([...initialCards].sort(() => 0.5 - Math.random()));
   }, [initialCards]);
 
@@ -202,7 +229,7 @@ export default function GameScreen({
       {activeCard && (
         <div className="p-8 rounded-lg shadow-lg text-center mb-8 border border-gray-100">
           <h2 className="text-3xl font-bold mb-2">{activeCard.word}</h2>
-          <p className="text-lg">{activeCard.description}</p>
+          <p className="text-xl">{activeCard.description}</p>
         </div>
       )}
       <div className="w-full sm:w-3xl flex justify-between">

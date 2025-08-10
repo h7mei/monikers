@@ -89,9 +89,9 @@ export default function CardSelectionScreen({
             className={`p-4 border rounded-lg cursor-pointer ${selectedCards.find((c) => c.word === card.word) ? 'bg-blue-500' : 'bg-gray-800'}`}
             onClick={() => handleCardSelect(card)}
           >
-            <h2 className="font-bold text-center text-xl">{card.word}</h2>
+            <h2 className="font-bold text-center text-3xl">{card.word}</h2>
             <p className="text-center mb-4">Level {card.level}</p>
-            <p>{card.description}</p>
+            <p className="text-xl">{card.description}</p>
           </div>
         ))}
       </div>
