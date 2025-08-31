@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { roomManager, Player } from '@/lib/roomManager';
+import { roomManager, Player, GameRoom } from '@/lib/roomManager';
 import { Card } from '@/components/single/GameScreen';
 
 interface Props {
@@ -26,7 +26,7 @@ export default function PlayerView({
   currentPlayerId,
   timer,
 }: Props) {
-  const [room, setRoom] = useState<unknown>(null);
+  const [room, setRoom] = useState<GameRoom | null>(null);
 
   useEffect(() => {
     const loadRoom = () => {

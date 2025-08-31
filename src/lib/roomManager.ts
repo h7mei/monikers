@@ -59,8 +59,8 @@ class RoomManager {
         const roomsData = JSON.parse(stored);
         this.rooms = new Map(Object.entries(roomsData));
       }
-    } catch (error) {
-      console.error('Error loading rooms from storage:', error);
+    } catch {
+      // Error loading rooms from storage
     }
   }
 
@@ -70,8 +70,8 @@ class RoomManager {
     try {
       const roomsData = Object.fromEntries(this.rooms);
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(roomsData));
-    } catch (error) {
-      console.error('Error saving rooms to storage:', error);
+    } catch {
+      // Error saving rooms to storage
     }
   }
 

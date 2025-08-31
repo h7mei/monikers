@@ -98,9 +98,9 @@ export default function Home() {
     setCurrentPlayer(player);
   };
 
-  const handleJoinRoom = (roomId: string, player: Player) => {
+  const handleJoinRoom = () => {
     // This would typically redirect to the room
-    console.log('Joining room:', roomId, player);
+    // Joining room logic would go here
   };
 
   // Check if game has started for the host

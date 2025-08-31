@@ -41,8 +41,8 @@ export default function TeamSelectionPage({ params, searchParams }: Props) {
         });
 
         setPlayerName(resolvedSearchParams.playerName || '');
-      } catch (error) {
-        console.error('Error resolving params:', error);
+      } catch {
+        // Error resolving params
       }
     };
 

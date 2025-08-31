@@ -25,8 +25,8 @@ export default function QRCodeDisplay({ roomId, className = '' }: Props) {
           },
         });
         setQrDataUrl(dataUrl);
-      } catch (error) {
-        console.error('Error generating QR code:', error);
+      } catch {
+        // Error generating QR code
       } finally {
         setIsLoading(false);
       }

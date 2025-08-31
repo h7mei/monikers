@@ -33,13 +33,13 @@ export function useRoomEvents(roomId: string) {
             eventSource.close();
             break;
         }
-      } catch (err) {
-        console.error('Error parsing SSE data:', err);
+      } catch {
+        // Error parsing SSE data
       }
     };
 
-    eventSource.onerror = (error) => {
-      console.error('SSE error:', error);
+    eventSource.onerror = () => {
+      // SSE error occurred
       setIsConnected(false);
       setError('Connection lost');
       eventSource.close();

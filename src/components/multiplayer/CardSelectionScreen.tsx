@@ -60,17 +60,9 @@ export default function MultiplayerCardSelectionScreen({
       (card) => !takenCards.has(card.word)
     );
 
-    // Log total available cards and their levels
-    console.log('Total available cards:', availableCards.length);
-    console.log('All cards from all levels:', allCards.length);
+    // Available cards calculation complete
 
     // Ensure fair distribution across all levels
-    const levelDistribution = {
-      1: availableCards.filter((card) => card.level === 1).length,
-      2: availableCards.filter((card) => card.level === 2).length,
-      3: availableCards.filter((card) => card.level === 3).length,
-      4: availableCards.filter((card) => card.level === 4).length,
-    };
 
     // Create a better deterministic shuffle that ensures level diversity
     const deterministicShuffleWithLevelBalance = (
@@ -145,16 +137,7 @@ export default function MultiplayerCardSelectionScreen({
       cardsToShow
     );
 
-    // Log the level distribution for debugging
-    const selectedLevelDistribution = {
-      1: selectedCards.filter((card) => card.level === 1).length,
-      2: selectedCards.filter((card) => card.level === 2).length,
-      3: selectedCards.filter((card) => card.level === 3).length,
-      4: selectedCards.filter((card) => card.level === 4).length,
-    };
-
-    console.log('Available level distribution:', levelDistribution);
-    console.log('Selected level distribution:', selectedLevelDistribution);
+    // Level distribution calculations complete
 
     setAvailableCards(selectedCards);
   }, [room, player]);

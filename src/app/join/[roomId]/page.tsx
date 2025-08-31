@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { roomManager, Player } from '@/lib/roomManager';
 import { Card } from '@/components/single/GameScreen';
@@ -12,8 +12,23 @@ interface Props {
   }>;
 }
 
-export default async function JoinRoomPage({ params }: Props) {
-  const { roomId } = await params;
+export default function JoinRoomPage({ params }: Props) {
+  const [roomId, setRoomId] = useState<string>('');
+
+  useEffect(() => {
+    const resolveParams = async () => {
+      try {
+        const resolvedParams = await params;
+        if (resolvedParams?.roomId) {
+          setRoomId(resolvedParams.roomId);
+        }
+      } catch {
+        // Error resolving params
+      }
+    };
+
+    resolveParams();
+  }, [params]);
   const [playerName, setPlayerName] = useState('');
   const [player, setPlayer] = useState<Player | null>(null);
   const [error, setError] = useState('');
@@ -44,11 +59,7 @@ export default async function JoinRoomPage({ params }: Props) {
 
     // Simulate network delay
     setTimeout(() => {
-      const newPlayer = roomManager.joinRoom(
-        roomId,
-        playerName,
-        'mobile'
-      );
+      const newPlayer = roomManager.joinRoom(roomId, playerName, 'mobile');
       if (newPlayer) {
         setPlayer(newPlayer);
         setIsJoining(false);
