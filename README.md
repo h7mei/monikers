@@ -5,11 +5,13 @@ A multiplayer version of the classic Monikers card guessing game built with Next
 ## Features
 
 ### Single Player Mode
+
 - Classic Monikers gameplay
 - Multiple rounds with different guessing rules
 - Score tracking and statistics
 
 ### Multiplayer Mode
+
 - **QR Code Room System**: Host creates a room and generates a QR code for players to join
 - **Real-time Updates**: Live synchronization between host and mobile players
 - **Mobile-Optimized**: Players can join on their phones via QR code scanning
@@ -18,23 +20,27 @@ A multiplayer version of the classic Monikers card guessing game built with Next
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - npm or yarn
 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd monikers
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -44,6 +50,7 @@ npm run dev
 ## How to Play Multiplayer
 
 ### For Host (Desktop)
+
 1. Click "Multiplayer" on the main menu
 2. Click "Create Room"
 3. Enter your name and game settings
@@ -53,6 +60,7 @@ npm run dev
 7. Click "Start Game" when ready
 
 ### For Players (Mobile)
+
 1. Scan the QR code shared by the host
 2. Enter your name
 3. Click "Join Room"
@@ -93,6 +101,7 @@ src/
 ## API Endpoints
 
 ### tRPC Routes
+
 - `room.createRoom` - Create a new game room
 - `room.joinRoom` - Join an existing room
 - `room.getRoom` - Get room information
@@ -100,11 +109,13 @@ src/
 - `room.leaveRoom` - Leave a room
 
 ### Server-Sent Events
+
 - `/api/room/[roomId]/events` - Real-time room updates
 
 ## Development
 
 ### Available Scripts
+
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run start` - Start production server
@@ -112,6 +123,7 @@ src/
 - `npm run format` - Format code with Prettier
 
 ### Adding New Features
+
 1. The game uses tRPC for type-safe API calls
 2. Real-time updates are handled via Server-Sent Events
 3. Room management is centralized in `roomManager.ts`

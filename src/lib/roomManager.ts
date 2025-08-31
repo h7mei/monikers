@@ -26,7 +26,7 @@ export interface GameRoom {
     cardsPerPlayer: number;
   };
   currentRound: number;
-  scores: Record<string, Record<number, any[]>>;
+  scores: Record<string, Record<number, Card[]>>;
   currentPlayerIndex: number; // Added for player management
   createdAt: number; // Added for creation timestamp
   updatedAt: number; // Added for cleanup
@@ -52,7 +52,7 @@ class RoomManager {
 
   private loadRoomsFromStorage() {
     if (typeof window === 'undefined') return;
-    
+
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
@@ -66,7 +66,7 @@ class RoomManager {
 
   private saveRoomsToStorage() {
     if (typeof window === 'undefined') return;
-    
+
     try {
       const roomsData = Object.fromEntries(this.rooms);
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(roomsData));
@@ -76,9 +76,9 @@ class RoomManager {
   }
 
   private assignTeam(room: GameRoom): 'team1' | 'team2' {
-    const team1Count = room.players.filter(p => p.team === 'team1').length;
-    const team2Count = room.players.filter(p => p.team === 'team2').length;
-    
+    const team1Count = room.players.filter((p) => p.team === 'team1').length;
+    const team2Count = room.players.filter((p) => p.team === 'team2').length;
+
     // Assign to the team with fewer players
     return team1Count <= team2Count ? 'team1' : 'team2';
   }
@@ -86,30 +86,32 @@ class RoomManager {
   createRoom(hostName: string): GameRoom {
     const roomId = uuidv4().substring(0, 8);
     const hostId = uuidv4();
-    
+
     const room: GameRoom = {
       id: roomId,
       hostId,
-      players: [{
-        id: hostId,
-        name: hostName,
-        isHost: true,
-        deviceType: 'desktop',
-        team: 'team1' // Host is always team1
-      }],
+      players: [
+        {
+          id: hostId,
+          name: hostName,
+          isHost: true,
+          deviceType: 'desktop',
+          team: 'team1', // Host is always team1
+        },
+      ],
       gameState: 'waiting',
       settings: {
         players: 4,
-        cardsPerPlayer: 5
+        cardsPerPlayer: 5,
       },
       currentRound: 1,
       scores: {
         team1: {},
-        team2: {}
+        team2: {},
       },
       currentPlayerIndex: 0, // Initialize
       createdAt: Date.now(), // Initialize creation timestamp
-      updatedAt: Date.now() // Initialize
+      updatedAt: Date.now(), // Initialize
     };
 
     this.rooms.set(roomId, room);
@@ -127,10 +129,14 @@ class RoomManager {
     return Array.from(this.rooms.values());
   }
 
-  joinRoom(roomId: string, playerName: string, deviceType: 'desktop' | 'mobile'): Player | null {
+  joinRoom(
+    roomId: string,
+    playerName: string,
+    deviceType: 'desktop' | 'mobile'
+  ): Player | null {
     // Reload from storage to get latest data
     this.loadRoomsFromStorage();
-    
+
     const room = this.rooms.get(roomId);
     if (!room || room.gameState !== 'waiting') {
       return null;
@@ -142,18 +148,20 @@ class RoomManager {
     }
 
     // Check if name is already taken
-    const nameExists = room.players.some(p => p.name.toLowerCase() === playerName.toLowerCase());
+    const nameExists = room.players.some(
+      (p) => p.name.toLowerCase() === playerName.toLowerCase()
+    );
     if (nameExists) {
       return null;
     }
 
     const playerId = uuidv4();
-    
+
     const player: Player = {
       id: playerId,
       name: playerName,
       isHost: false,
-      deviceType
+      deviceType,
       // Team will be assigned later when player chooses
     };
 
@@ -165,12 +173,12 @@ class RoomManager {
   leaveRoom(roomId: string, playerId: string): boolean {
     // Reload from storage to get latest data
     this.loadRoomsFromStorage();
-    
+
     const room = this.rooms.get(roomId);
     if (!room) return false;
 
-    room.players = room.players.filter(p => p.id !== playerId);
-    
+    room.players = room.players.filter((p) => p.id !== playerId);
+
     // If host leaves, assign new host or delete room
     if (room.hostId === playerId) {
       if (room.players.length > 0) {
@@ -189,7 +197,7 @@ class RoomManager {
   updateGameState(roomId: string, gameState: GameRoom['gameState']): boolean {
     // Reload from storage to get latest data
     this.loadRoomsFromStorage();
-    
+
     const room = this.rooms.get(roomId);
     if (!room) return false;
 
@@ -198,10 +206,13 @@ class RoomManager {
     return true;
   }
 
-  updateSettings(roomId: string, settings: Partial<{ players: number; cardsPerPlayer: number }>): boolean {
+  updateSettings(
+    roomId: string,
+    settings: Partial<{ players: number; cardsPerPlayer: number }>
+  ): boolean {
     // Reload from storage to get latest data
     this.loadRoomsFromStorage();
-    
+
     const room = this.rooms.get(roomId);
     if (!room) return false;
 
@@ -210,19 +221,23 @@ class RoomManager {
     return true;
   }
 
-  assignTeamToPlayer(roomId: string, playerId: string, team: 'team1' | 'team2'): boolean {
+  assignTeamToPlayer(
+    roomId: string,
+    playerId: string,
+    team: 'team1' | 'team2'
+  ): boolean {
     // Reload from storage to get latest data
     this.loadRoomsFromStorage();
-    
+
     const room = this.rooms.get(roomId);
     if (!room) return false;
 
-    const player = room.players.find(p => p.id === playerId);
+    const player = room.players.find((p) => p.id === playerId);
     if (!player) return false;
 
     // Check team balance before assigning
-    const team1Count = room.players.filter(p => p.team === 'team1').length;
-    const team2Count = room.players.filter(p => p.team === 'team2').length;
+    const team1Count = room.players.filter((p) => p.team === 'team1').length;
+    const team2Count = room.players.filter((p) => p.team === 'team2').length;
     const totalPlayers = room.players.length;
     const maxTeamSize = Math.ceil(totalPlayers / 2);
 
@@ -238,49 +253,49 @@ class RoomManager {
   // Check if a team is available for joining
   isTeamAvailable(roomId: string, team: 'team1' | 'team2'): boolean {
     this.loadRoomsFromStorage();
-    
+
     const room = this.rooms.get(roomId);
     if (!room) return false;
 
-    const team1Count = room.players.filter(p => p.team === 'team1').length;
-    const team2Count = room.players.filter(p => p.team === 'team2').length;
+    const team1Count = room.players.filter((p) => p.team === 'team1').length;
+    const team2Count = room.players.filter((p) => p.team === 'team2').length;
     const totalPlayers = room.players.length;
     const maxTeamSize = Math.ceil(totalPlayers / 2);
 
     if (team === 'team1') return team1Count < maxTeamSize;
     if (team === 'team2') return team2Count < maxTeamSize;
-    
+
     return false;
   }
 
   // Get available teams for a room
   getAvailableTeams(roomId: string): ('team1' | 'team2')[] {
     this.loadRoomsFromStorage();
-    
+
     const room = this.rooms.get(roomId);
     if (!room) return [];
 
-    const team1Count = room.players.filter(p => p.team === 'team1').length;
-    const team2Count = room.players.filter(p => p.team === 'team2').length;
+    const team1Count = room.players.filter((p) => p.team === 'team1').length;
+    const team2Count = room.players.filter((p) => p.team === 'team2').length;
     const totalPlayers = room.players.length;
     const maxTeamSize = Math.ceil(totalPlayers / 2);
 
     const availableTeams: ('team1' | 'team2')[] = [];
-    
+
     if (team1Count < maxTeamSize) availableTeams.push('team1');
     if (team2Count < maxTeamSize) availableTeams.push('team2');
-    
+
     return availableTeams;
   }
 
   // Update player's selected cards
   updatePlayerCards(roomId: string, playerId: string, cards: Card[]): boolean {
     this.loadRoomsFromStorage();
-    
+
     const room = this.rooms.get(roomId);
     if (!room) return false;
 
-    const player = room.players.find(p => p.id === playerId);
+    const player = room.players.find((p) => p.id === playerId);
     if (!player) return false;
 
     player.selectedCards = cards;
@@ -292,7 +307,7 @@ class RoomManager {
   // Update current player index
   updateCurrentPlayer(roomId: string, playerIndex: number): boolean {
     this.loadRoomsFromStorage();
-    
+
     const room = this.rooms.get(roomId);
     if (!room) return false;
 
@@ -305,12 +320,12 @@ class RoomManager {
   // Get all cards selected by all players
   getAllSelectedCards(roomId: string): Card[] {
     this.loadRoomsFromStorage();
-    
+
     const room = this.rooms.get(roomId);
     if (!room) return [];
 
     const allCards: Card[] = [];
-    room.players.forEach(player => {
+    room.players.forEach((player) => {
       if (player.selectedCards) {
         allCards.push(...player.selectedCards);
       }
@@ -320,9 +335,12 @@ class RoomManager {
   }
 
   // Update scores for a room
-  updateScores(roomId: string, scores: Record<string, Record<number, Card[]>>): boolean {
+  updateScores(
+    roomId: string,
+    scores: Record<string, Record<number, Card[]>>
+  ): boolean {
     this.loadRoomsFromStorage();
-    
+
     const room = this.rooms.get(roomId);
     if (!room) return false;
 
@@ -335,7 +353,7 @@ class RoomManager {
   // Update current round
   updateCurrentRound(roomId: string, round: number): boolean {
     this.loadRoomsFromStorage();
-    
+
     const room = this.rooms.get(roomId);
     if (!room) return false;
 
@@ -366,7 +384,11 @@ class RoomManager {
     return true;
   }
 
-  updateRoundStatus(roomId: string, isRoundActive: boolean, roundStarted: boolean): boolean {
+  updateRoundStatus(
+    roomId: string,
+    isRoundActive: boolean,
+    roundStarted: boolean
+  ): boolean {
     this.loadRoomsFromStorage();
     const room = this.rooms.get(roomId);
     if (!room) return false;
@@ -411,7 +433,11 @@ class RoomManager {
   }
 
   // Update player skip count
-  updatePlayerSkipCount(roomId: string, playerId: string, skipCount: number): boolean {
+  updatePlayerSkipCount(
+    roomId: string,
+    playerId: string,
+    skipCount: number
+  ): boolean {
     this.loadRoomsFromStorage();
     const room = this.rooms.get(roomId);
     if (!room) return false;
@@ -445,11 +471,8 @@ class RoomManager {
 
   // Clean up old rooms (older than 1 hour)
   cleanupOldRooms() {
-    const oneHourAgo = Date.now() - (60 * 60 * 1000);
-    for (const [roomId, room] of this.rooms.entries()) {
-      // For now, we'll keep all rooms since we don't have timestamps
-      // In a real implementation, you'd add timestamps and clean up old rooms
-    }
+    // For now, we'll keep all rooms since we don't have timestamps
+    // In a real implementation, you'd add timestamps and clean up old rooms
   }
 }
 

@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react';
 import SetupScreen from '@/components/single/SetupScreen';
 import MultiplayerSetupScreen from '@/components/multiplayer/SetupScreen';
 import CardSelectionScreen from '@/components/single/CardSelectionScreen';
-import GameScreen, { Card, ScoresByRound } from '@/components/single/GameScreen';
+import GameScreen, {
+  Card,
+  ScoresByRound,
+} from '@/components/single/GameScreen';
 import ScoreScreen from '@/components/single/ScoreScreen';
 import { GameRoom, Player, roomManager } from '@/lib/roomManager';
 

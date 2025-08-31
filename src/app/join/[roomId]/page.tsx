@@ -3,27 +3,30 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { roomManager, Player } from '@/lib/roomManager';
+import { Card } from '@/components/single/GameScreen';
 import PlayerView from '@/components/multiplayer/PlayerView';
 
-
 interface Props {
-  params: {
+  params: Promise<{
     roomId: string;
-  };
+  }>;
 }
 
-export default function JoinRoomPage({ params }: Props) {
+export default async function JoinRoomPage({ params }: Props) {
+  const { roomId } = await params;
   const [playerName, setPlayerName] = useState('');
   const [player, setPlayer] = useState<Player | null>(null);
   const [error, setError] = useState('');
   const [isJoining, setIsJoining] = useState(false);
 
   // Mock game state for demo (in real implementation, this would come from WebSocket)
-  const [gameState] = useState<'waiting' | 'card-selection' | 'playing' | 'finished'>('waiting');
+  const [gameState] = useState<
+    'waiting' | 'card-selection' | 'playing' | 'finished'
+  >('waiting');
   const [currentRound] = useState(1);
-  const [scores] = useState<Record<string, Record<number, any[]>>>({
+  const [scores] = useState<Record<string, Record<number, Card[]>>>({
     team1: {},
-    team2: {}
+    team2: {},
   });
   const [currentTeam] = useState('team1');
   const [currentPlayerId] = useState<string | null>(null);
@@ -41,7 +44,11 @@ export default function JoinRoomPage({ params }: Props) {
 
     // Simulate network delay
     setTimeout(() => {
-      const newPlayer = roomManager.joinRoom(params.roomId, playerName, 'mobile');
+      const newPlayer = roomManager.joinRoom(
+        roomId,
+        playerName,
+        'mobile'
+      );
       if (newPlayer) {
         setPlayer(newPlayer);
         setIsJoining(false);
@@ -56,7 +63,7 @@ export default function JoinRoomPage({ params }: Props) {
   if (player) {
     return (
       <PlayerView
-        roomId={params.roomId}
+        roomId={roomId}
         player={player}
         gameState={gameState}
         currentRound={currentRound}
@@ -111,7 +118,7 @@ export default function JoinRoomPage({ params }: Props) {
         </button>
 
         <div className="text-center text-sm text-gray-500">
-          <p>Room Code: {params.roomId.toUpperCase()}</p>
+          <p>Room Code: {roomId.toUpperCase()}</p>
         </div>
       </div>
     </div>

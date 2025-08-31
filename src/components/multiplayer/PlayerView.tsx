@@ -25,9 +25,8 @@ export default function PlayerView({
   currentTeam,
   currentPlayerId,
   timer,
-  isRoundActive
 }: Props) {
-  const [room, setRoom] = useState<any>(null);
+  const [room, setRoom] = useState<unknown>(null);
 
   useEffect(() => {
     const loadRoom = () => {
@@ -43,8 +42,13 @@ export default function PlayerView({
   }, [roomId]);
 
   const isMyTurn = currentPlayerId === player.id;
-  const roundDescription = `Round ${currentRound}: ${currentRound === 1 ? 'Free Talking' : currentRound === 2 ? 'One Word' : 'Expressions'
-    }`;
+  const roundDescription = `Round ${currentRound}: ${
+    currentRound === 1
+      ? 'Free Talking'
+      : currentRound === 2
+        ? 'One Word'
+        : 'Expressions'
+  }`;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -65,10 +69,13 @@ export default function PlayerView({
           <div className="flex items-center justify-center space-x-2">
             <p className="text-gray-400">{player.isHost ? 'Host' : 'Player'}</p>
             {player.team && (
-              <span className={`px-2 py-1 rounded text-xs ${player.team === 'team1'
-                ? 'bg-blue-500/20 text-blue-400'
-                : 'bg-green-500/20 text-green-400'
-                }`}>
+              <span
+                className={`px-2 py-1 rounded text-xs ${
+                  player.team === 'team1'
+                    ? 'bg-blue-500/20 text-blue-400'
+                    : 'bg-green-500/20 text-green-400'
+                }`}
+              >
                 {player.team === 'team1' ? 'Team 1' : 'Team 2'}
               </span>
             )}
@@ -88,8 +95,11 @@ export default function PlayerView({
 
         {/* Timer */}
         <div className="text-center">
-          <div className={`text-4xl font-mono font-bold ${timer <= 10 ? 'text-red-500 animate-pulse' : 'text-blue-500'
-            }`}>
+          <div
+            className={`text-4xl font-mono font-bold ${
+              timer <= 10 ? 'text-red-500 animate-pulse' : 'text-blue-500'
+            }`}
+          >
             {formatTime(timer)}
           </div>
           <p className="text-gray-400 mt-2">
@@ -100,19 +110,27 @@ export default function PlayerView({
         {/* Scores */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-blue-500/20 p-4 rounded-lg">
-            <h3 className="text-center text-blue-400 font-semibold mb-2">Team 1</h3>
+            <h3 className="text-center text-blue-400 font-semibold mb-2">
+              Team 1
+            </h3>
             <div className="space-y-1">
               <div className="text-center">
-                <span className="text-2xl font-bold">{getTeamScore('team1', currentRound)}</span>
+                <span className="text-2xl font-bold">
+                  {getTeamScore('team1', currentRound)}
+                </span>
                 <p className="text-xs text-gray-400">Round {currentRound}</p>
               </div>
             </div>
           </div>
           <div className="bg-green-500/20 p-4 rounded-lg">
-            <h3 className="text-center text-green-400 font-semibold mb-2">Team 2</h3>
+            <h3 className="text-center text-green-400 font-semibold mb-2">
+              Team 2
+            </h3>
             <div className="space-y-1">
               <div className="text-center">
-                <span className="text-2xl font-bold">{getTeamScore('team2', currentRound)}</span>
+                <span className="text-2xl font-bold">
+                  {getTeamScore('team2', currentRound)}
+                </span>
                 <p className="text-xs text-gray-400">Round {currentRound}</p>
               </div>
             </div>

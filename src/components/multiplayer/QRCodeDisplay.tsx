@@ -21,8 +21,8 @@ export default function QRCodeDisplay({ roomId, className = '' }: Props) {
           margin: 2,
           color: {
             dark: '#000000',
-            light: '#FFFFFF'
-          }
+            light: '#FFFFFF',
+          },
         });
         setQrDataUrl(dataUrl);
       } catch (error) {
@@ -46,11 +46,7 @@ export default function QRCodeDisplay({ roomId, className = '' }: Props) {
   return (
     <div className={`flex flex-col items-center ${className}`}>
       <div className="bg-white p-4 rounded-lg shadow-lg">
-        <img 
-          src={qrDataUrl} 
-          alt="Room QR Code" 
-          className="w-48 h-48"
-        />
+        <img src={qrDataUrl} alt="Room QR Code" className="w-48 h-48" />
       </div>
       <div className="mt-4 text-center">
         <p className="text-sm text-gray-400 mb-2">Room Code:</p>

@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import { roomManager, GameRoom, Player } from '@/lib/roomManager';
 
-
-
 interface Props {
   params: Promise<{
     roomId: string;
@@ -17,13 +15,16 @@ interface Props {
 export default function TeamSelectionPage({ params, searchParams }: Props) {
   const [room, setRoom] = useState<GameRoom | null>(null);
   const [playerName, setPlayerName] = useState('');
-  const [selectedTeam, setSelectedTeam] = useState<'team1' | 'team2' | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<'team1' | 'team2' | null>(
+    null
+  );
   const [player, setPlayer] = useState<Player | null>(null);
   const [error, setError] = useState('');
   const [isJoining, setIsJoining] = useState(false);
-  const [resolvedParams, setResolvedParams] = useState<{ roomId: string; playerName?: string } | null>(null);
-
-
+  const [resolvedParams, setResolvedParams] = useState<{
+    roomId: string;
+    playerName?: string;
+  } | null>(null);
 
   // Resolve async params
   useEffect(() => {
@@ -31,12 +32,12 @@ export default function TeamSelectionPage({ params, searchParams }: Props) {
       try {
         const [resolvedParams, resolvedSearchParams] = await Promise.all([
           params,
-          searchParams
+          searchParams,
         ]);
 
         setResolvedParams({
           roomId: resolvedParams.roomId,
-          playerName: resolvedSearchParams.playerName
+          playerName: resolvedSearchParams.playerName,
         });
 
         setPlayerName(resolvedSearchParams.playerName || '');
@@ -97,7 +98,9 @@ export default function TeamSelectionPage({ params, searchParams }: Props) {
     }
 
     // Check if name is already taken
-    const nameExists = room.players.some(p => p.name.toLowerCase() === playerName.toLowerCase());
+    const nameExists = room.players.some(
+      (p) => p.name.toLowerCase() === playerName.toLowerCase()
+    );
     if (nameExists) {
       setError('Name already taken');
       return;
@@ -107,10 +110,18 @@ export default function TeamSelectionPage({ params, searchParams }: Props) {
     setError('');
 
     // Join room first
-    const player = roomManager.joinRoom(resolvedParams.roomId, playerName, 'mobile');
+    const player = roomManager.joinRoom(
+      resolvedParams.roomId,
+      playerName,
+      'mobile'
+    );
     if (player) {
       // Then assign the team
-      const success = roomManager.assignTeamToPlayer(resolvedParams.roomId, player.id, selectedTeam);
+      const success = roomManager.assignTeamToPlayer(
+        resolvedParams.roomId,
+        player.id,
+        selectedTeam
+      );
       if (success) {
         player.team = selectedTeam;
         setPlayer(player);
@@ -125,11 +136,11 @@ export default function TeamSelectionPage({ params, searchParams }: Props) {
   };
 
   const getTeamCount = (team: 'team1' | 'team2') => {
-    return room?.players.filter(p => p.team === team).length || 0;
+    return room?.players.filter((p) => p.team === team).length || 0;
   };
 
   const getTeamPlayers = (team: 'team1' | 'team2') => {
-    return room?.players.filter(p => p.team === team) || [];
+    return room?.players.filter((p) => p.team === team) || [];
   };
 
   const isTeamAvailable = (team: 'team1' | 'team2') => {
@@ -164,7 +175,9 @@ export default function TeamSelectionPage({ params, searchParams }: Props) {
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Room Not Found</h1>
-          <p className="text-gray-400">The room you're looking for doesn't exist.</p>
+          <p className="text-gray-400">
+            The room you&apos;re looking for doesn&apos;t exist.
+          </p>
         </div>
       </div>
     );
@@ -175,7 +188,9 @@ export default function TeamSelectionPage({ params, searchParams }: Props) {
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-2">Choose Your Team</h1>
-          <p className="text-gray-400">Room: {resolvedParams?.roomId.toUpperCase()}</p>
+          <p className="text-gray-400">
+            Room: {resolvedParams?.roomId.toUpperCase()}
+          </p>
         </div>
 
         <div>
@@ -193,16 +208,19 @@ export default function TeamSelectionPage({ params, searchParams }: Props) {
 
         {/* Team Selection */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-center">Select Your Team</h2>
+          <h2 className="text-lg font-semibold text-center">
+            Select Your Team
+          </h2>
 
           {/* Team 1 */}
           <div
-            className={`p-4 rounded-lg border-2 transition-colors ${!isTeamAvailable('team1')
-              ? 'border-gray-600 bg-gray-700 cursor-not-allowed opacity-50'
-              : selectedTeam === 'team1'
-                ? 'border-blue-500 bg-blue-500/20 cursor-pointer'
-                : 'border-gray-700 bg-gray-800 hover:border-blue-400 cursor-pointer'
-              }`}
+            className={`p-4 rounded-lg border-2 transition-colors ${
+              !isTeamAvailable('team1')
+                ? 'border-gray-600 bg-gray-700 cursor-not-allowed opacity-50'
+                : selectedTeam === 'team1'
+                  ? 'border-blue-500 bg-blue-500/20 cursor-pointer'
+                  : 'border-gray-700 bg-gray-800 hover:border-blue-400 cursor-pointer'
+            }`}
             onClick={() => isTeamAvailable('team1') && setSelectedTeam('team1')}
           >
             <div className="flex items-center justify-between">
@@ -218,7 +236,9 @@ export default function TeamSelectionPage({ params, searchParams }: Props) {
                   <p className="text-sm text-yellow-400">Almost Full</p>
                 )}
               </div>
-              <div className="text-2xl font-bold text-blue-400">{getTeamCount('team1')}</div>
+              <div className="text-2xl font-bold text-blue-400">
+                {getTeamCount('team1')}
+              </div>
             </div>
 
             {/* Team 1 Players */}
@@ -235,12 +255,13 @@ export default function TeamSelectionPage({ params, searchParams }: Props) {
 
           {/* Team 2 */}
           <div
-            className={`p-4 rounded-lg border-2 transition-colors ${!isTeamAvailable('team2')
-              ? 'border-gray-600 bg-gray-700 cursor-not-allowed opacity-50'
-              : selectedTeam === 'team2'
-                ? 'border-green-500 bg-green-500/20 cursor-pointer'
-                : 'border-gray-700 bg-gray-800 hover:border-green-400 cursor-pointer'
-              }`}
+            className={`p-4 rounded-lg border-2 transition-colors ${
+              !isTeamAvailable('team2')
+                ? 'border-gray-600 bg-gray-700 cursor-not-allowed opacity-50'
+                : selectedTeam === 'team2'
+                  ? 'border-green-500 bg-green-500/20 cursor-pointer'
+                  : 'border-gray-700 bg-gray-800 hover:border-green-400 cursor-pointer'
+            }`}
             onClick={() => isTeamAvailable('team2') && setSelectedTeam('team2')}
           >
             <div className="flex items-center justify-between">
@@ -256,7 +277,9 @@ export default function TeamSelectionPage({ params, searchParams }: Props) {
                   <p className="text-sm text-yellow-400">Almost Full</p>
                 )}
               </div>
-              <div className="text-2xl font-bold text-green-400">{getTeamCount('team2')}</div>
+              <div className="text-2xl font-bold text-green-400">
+                {getTeamCount('team2')}
+              </div>
             </div>
 
             {/* Team 2 Players */}
@@ -294,7 +317,9 @@ export default function TeamSelectionPage({ params, searchParams }: Props) {
         </button>
 
         <div className="text-center text-sm text-gray-500">
-          <p>Room Capacity: {room.players.length} / {room.settings.players}</p>
+          <p>
+            Room Capacity: {room.players.length} / {room.settings.players}
+          </p>
         </div>
       </div>
     </div>

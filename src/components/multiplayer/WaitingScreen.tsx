@@ -30,7 +30,7 @@ export default function WaitingScreen({ roomId, player, onGameStart }: Props) {
       const updatedRoom = roomManager.getRoom(roomId);
       if (updatedRoom) {
         setRoom(updatedRoom);
-        
+
         // Check if game has started
         if (updatedRoom.gameState !== 'waiting') {
           onGameStart(updatedRoom);
@@ -43,11 +43,11 @@ export default function WaitingScreen({ roomId, player, onGameStart }: Props) {
 
   const handleStartGame = () => {
     if (!room) return;
-    
+
     // Start with card selection phase
     roomManager.updateGameState(room.id, 'card-selection');
     roomManager.updateCurrentPlayer(room.id, 0); // Start with first player
-    
+
     onGameStart(room);
   };
 
@@ -69,11 +69,11 @@ export default function WaitingScreen({ roomId, player, onGameStart }: Props) {
   }
 
   const getTeamCount = (team: 'team1' | 'team2') => {
-    return room.players.filter(p => p.team === team).length;
+    return room.players.filter((p) => p.team === team).length;
   };
 
   const getTeamPlayers = (team: 'team1' | 'team2') => {
-    return room.players.filter(p => p.team === team);
+    return room.players.filter((p) => p.team === team);
   };
 
   return (
@@ -89,13 +89,17 @@ export default function WaitingScreen({ roomId, player, onGameStart }: Props) {
           <div className="text-center">
             <h2 className="text-xl font-semibold mb-2">{player.name}</h2>
             <div className="flex items-center justify-center space-x-2">
-              <span className="text-gray-400">{isHost ? 'Host' : 'Player'}</span>
+              <span className="text-gray-400">
+                {isHost ? 'Host' : 'Player'}
+              </span>
               {player.team && (
-                <span className={`px-2 py-1 rounded text-xs ${
-                  player.team === 'team1' 
-                    ? 'bg-blue-500/20 text-blue-400' 
-                    : 'bg-green-500/20 text-green-400'
-                }`}>
+                <span
+                  className={`px-2 py-1 rounded text-xs ${
+                    player.team === 'team1'
+                      ? 'bg-blue-500/20 text-blue-400'
+                      : 'bg-green-500/20 text-green-400'
+                  }`}
+                >
                   {player.team === 'team1' ? 'Team 1' : 'Team 2'}
                 </span>
               )}
@@ -106,7 +110,9 @@ export default function WaitingScreen({ roomId, player, onGameStart }: Props) {
         {/* Room Status */}
         <div className="text-center space-y-2">
           <p className="text-sm text-gray-400">Players in room:</p>
-          <p className="text-lg font-semibold">{room.players.length} / {room.settings.players}</p>
+          <p className="text-lg font-semibold">
+            {room.players.length} / {room.settings.players}
+          </p>
         </div>
 
         {/* Team Breakdown */}
@@ -128,11 +134,18 @@ export default function WaitingScreen({ roomId, player, onGameStart }: Props) {
             <h3 className="text-sm font-semibold text-blue-400 mb-2">Team 1</h3>
             <div className="space-y-1">
               {getTeamPlayers('team1').map((p) => (
-                <div key={p.id} className="text-sm text-gray-300 flex items-center justify-between">
+                <div
+                  key={p.id}
+                  className="text-sm text-gray-300 flex items-center justify-between"
+                >
                   <span>{p.name}</span>
                   <div className="flex items-center space-x-2">
-                    {p.isHost && <span className="text-yellow-400 text-xs">(Host)</span>}
-                    {p.id === player.id && <span className="text-blue-400 text-xs">(You)</span>}
+                    {p.isHost && (
+                      <span className="text-yellow-400 text-xs">(Host)</span>
+                    )}
+                    {p.id === player.id && (
+                      <span className="text-blue-400 text-xs">(You)</span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -141,14 +154,23 @@ export default function WaitingScreen({ roomId, player, onGameStart }: Props) {
 
           {/* Team 2 Players */}
           <div>
-            <h3 className="text-sm font-semibold text-green-400 mb-2">Team 2</h3>
+            <h3 className="text-sm font-semibold text-green-400 mb-2">
+              Team 2
+            </h3>
             <div className="space-y-1">
               {getTeamPlayers('team2').map((p) => (
-                <div key={p.id} className="text-sm text-gray-300 flex items-center justify-between">
+                <div
+                  key={p.id}
+                  className="text-sm text-gray-300 flex items-center justify-between"
+                >
                   <span>{p.name}</span>
                   <div className="flex items-center space-x-2">
-                    {p.isHost && <span className="text-yellow-400 text-xs">(Host)</span>}
-                    {p.id === player.id && <span className="text-green-400 text-xs">(You)</span>}
+                    {p.isHost && (
+                      <span className="text-yellow-400 text-xs">(Host)</span>
+                    )}
+                    {p.id === player.id && (
+                      <span className="text-green-400 text-xs">(You)</span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -167,7 +189,7 @@ export default function WaitingScreen({ roomId, player, onGameStart }: Props) {
               Start Game ({room.players.length} players)
             </button>
           )}
-          
+
           {!isHost && (
             <div className="text-center text-gray-400 text-sm">
               Waiting for host to start the game...

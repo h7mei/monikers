@@ -16,7 +16,11 @@ interface Props {
 
 const allCards: Card[] = [...cards1, ...cards2, ...cards3, ...cards4];
 
-export default function MultiplayerCardSelectionScreen({ roomId, player, onSelectionComplete }: Props) {
+export default function MultiplayerCardSelectionScreen({
+  roomId,
+  player,
+  onSelectionComplete,
+}: Props) {
   const [room, setRoom] = useState<GameRoom | null>(null);
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
@@ -41,18 +45,20 @@ export default function MultiplayerCardSelectionScreen({ roomId, player, onSelec
 
     // Get all cards that have already been selected by other players
     const takenCards = new Set<string>();
-    room.players.forEach(p => {
+    room.players.forEach((p) => {
       if (p.selectedCards) {
-        p.selectedCards.forEach(card => {
+        p.selectedCards.forEach((card) => {
           // Handle both formats (roomManager format and GameScreen format)
-          const cardId = card.id || (card as any).word;
+          const cardId = card.id || (card as unknown as { word: string }).word;
           takenCards.add(cardId);
         });
       }
     });
 
     // Filter out cards that have already been selected
-    const availableCards = allCards.filter(card => !takenCards.has(card.word));
+    const availableCards = allCards.filter(
+      (card) => !takenCards.has(card.word)
+    );
 
     // Log total available cards and their levels
     console.log('Total available cards:', availableCards.length);
@@ -60,27 +66,31 @@ export default function MultiplayerCardSelectionScreen({ roomId, player, onSelec
 
     // Ensure fair distribution across all levels
     const levelDistribution = {
-      1: availableCards.filter(card => card.level === 1).length,
-      2: availableCards.filter(card => card.level === 2).length,
-      3: availableCards.filter(card => card.level === 3).length,
-      4: availableCards.filter(card => card.level === 4).length
+      1: availableCards.filter((card) => card.level === 1).length,
+      2: availableCards.filter((card) => card.level === 2).length,
+      3: availableCards.filter((card) => card.level === 3).length,
+      4: availableCards.filter((card) => card.level === 4).length,
     };
 
     // Create a better deterministic shuffle that ensures level diversity
-    const deterministicShuffleWithLevelBalance = (cards: Card[], seed: string, targetCount: number) => {
+    const deterministicShuffleWithLevelBalance = (
+      cards: Card[],
+      seed: string,
+      targetCount: number
+    ) => {
       // Separate cards by level
       const cardsByLevel = {
-        1: cards.filter(card => card.level === 1),
-        2: cards.filter(card => card.level === 2),
-        3: cards.filter(card => card.level === 3),
-        4: cards.filter(card => card.level === 4)
+        1: cards.filter((card) => card.level === 1),
+        2: cards.filter((card) => card.level === 2),
+        3: cards.filter((card) => card.level === 3),
+        4: cards.filter((card) => card.level === 4),
       };
 
       // Create seed for randomization
       let hash = 0;
       for (let i = 0; i < seed.length; i++) {
         const char = seed.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
+        hash = (hash << 5) - hash + char;
         hash = hash & hash;
       }
 
@@ -105,7 +115,7 @@ export default function MultiplayerCardSelectionScreen({ roomId, player, onSelec
         1: shuffleArray(cardsByLevel[1]),
         2: shuffleArray(cardsByLevel[2]),
         3: shuffleArray(cardsByLevel[3]),
-        4: shuffleArray(cardsByLevel[4])
+        4: shuffleArray(cardsByLevel[4]),
       };
 
       // Interleave cards from different levels to ensure diversity
@@ -129,14 +139,18 @@ export default function MultiplayerCardSelectionScreen({ roomId, player, onSelec
 
     // Use the improved shuffle that ensures level diversity
     const cardsToShow = room.settings.cardsPerPlayer + 2;
-    const selectedCards = deterministicShuffleWithLevelBalance(availableCards, player.id, cardsToShow);
+    const selectedCards = deterministicShuffleWithLevelBalance(
+      availableCards,
+      player.id,
+      cardsToShow
+    );
 
     // Log the level distribution for debugging
     const selectedLevelDistribution = {
-      1: selectedCards.filter(card => card.level === 1).length,
-      2: selectedCards.filter(card => card.level === 2).length,
-      3: selectedCards.filter(card => card.level === 3).length,
-      4: selectedCards.filter(card => card.level === 4).length
+      1: selectedCards.filter((card) => card.level === 1).length,
+      2: selectedCards.filter((card) => card.level === 2).length,
+      3: selectedCards.filter((card) => card.level === 3).length,
+      4: selectedCards.filter((card) => card.level === 4).length,
     };
 
     console.log('Available level distribution:', levelDistribution);
@@ -149,24 +163,24 @@ export default function MultiplayerCardSelectionScreen({ roomId, player, onSelec
     if (selectedCards.length >= (room?.settings.cardsPerPlayer || 0)) return;
 
     // Check if card is already selected by this player
-    const isAlreadySelected = selectedCards.some(c => c.word === card.word);
+    const isAlreadySelected = selectedCards.some((c) => c.word === card.word);
     if (isAlreadySelected) return;
 
-    setSelectedCards(prev => [...prev, card]);
+    setSelectedCards((prev) => [...prev, card]);
   };
 
   const handleCardDeselect = (cardWord: string) => {
-    setSelectedCards(prev => prev.filter(card => card.word !== cardWord));
+    setSelectedCards((prev) => prev.filter((card) => card.word !== cardWord));
   };
 
   const handleConfirmSelection = () => {
     if (!room || selectedCards.length !== room.settings.cardsPerPlayer) return;
 
     // Convert Card format from GameScreen to roomManager format
-    const convertedCards = selectedCards.map(card => ({
+    const convertedCards = selectedCards.map((card) => ({
       id: card.word, // Use word as id
       text: card.word,
-      round: 1
+      round: 1,
     }));
 
     // Update player's selected cards in room
@@ -175,8 +189,10 @@ export default function MultiplayerCardSelectionScreen({ roomId, player, onSelec
     // Check if all players have selected cards
     const updatedRoom = roomManager.getRoom(roomId);
     if (updatedRoom) {
-      const allPlayersHaveCards = updatedRoom.players.every(p =>
-        p.selectedCards && p.selectedCards.length === room.settings.cardsPerPlayer
+      const allPlayersHaveCards = updatedRoom.players.every(
+        (p) =>
+          p.selectedCards &&
+          p.selectedCards.length === room.settings.cardsPerPlayer
       );
 
       if (allPlayersHaveCards) {
@@ -190,8 +206,10 @@ export default function MultiplayerCardSelectionScreen({ roomId, player, onSelec
   const getPlayerProgress = () => {
     if (!room) return { completed: 0, total: 0 };
 
-    const completed = room.players.filter(p =>
-      p.selectedCards && p.selectedCards.length === room.settings.cardsPerPlayer
+    const completed = room.players.filter(
+      (p) =>
+        p.selectedCards &&
+        p.selectedCards.length === room.settings.cardsPerPlayer
     ).length;
 
     return { completed, total: room.players.length };
@@ -217,14 +235,17 @@ export default function MultiplayerCardSelectionScreen({ roomId, player, onSelec
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Card Selection</h1>
           <p className="text-gray-400 mb-4">
-            Room: {roomId.toUpperCase()} • {progress.completed}/{progress.total} players ready
+            Room: {roomId.toUpperCase()} • {progress.completed}/{progress.total}{' '}
+            players ready
           </p>
 
           {/* Progress Bar */}
           <div className="w-full bg-gray-700 rounded-full h-2 mb-4">
             <div
               className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(progress.completed / progress.total) * 100}%` }}
+              style={{
+                width: `${(progress.completed / progress.total) * 100}%`,
+              }}
             ></div>
           </div>
         </div>
@@ -234,7 +255,8 @@ export default function MultiplayerCardSelectionScreen({ roomId, player, onSelec
           <div className="text-center">
             <h2 className="text-xl font-semibold mb-2">Select Your Cards</h2>
             <p className="text-gray-400">
-              You have {availableCards.length} cards to choose from. Select {cardsNeeded} cards for your team.
+              You have {availableCards.length} cards to choose from. Select{' '}
+              {cardsNeeded} cards for your team.
             </p>
             <p className="text-sm text-gray-500 mt-1">
               (Showing {cardsNeeded + 2} options, choose {cardsNeeded})
@@ -247,21 +269,27 @@ export default function MultiplayerCardSelectionScreen({ roomId, player, onSelec
           {room.players.map((p) => (
             <div
               key={p.id}
-              className={`p-3 rounded-lg border-2 ${p.selectedCards && p.selectedCards.length === cardsNeeded
-                ? 'border-green-500 bg-green-500/20'
-                : 'border-gray-700 bg-gray-800'
-                }`}
+              className={`p-3 rounded-lg border-2 ${
+                p.selectedCards && p.selectedCards.length === cardsNeeded
+                  ? 'border-green-500 bg-green-500/20'
+                  : 'border-gray-700 bg-gray-800'
+              }`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-semibold">{p.name}</span>
-                <span className={`text-sm ${p.selectedCards && p.selectedCards.length === cardsNeeded
-                  ? 'text-green-400'
-                  : 'text-yellow-400'
-                  }`}>
+                <span
+                  className={`text-sm ${
+                    p.selectedCards && p.selectedCards.length === cardsNeeded
+                      ? 'text-green-400'
+                      : 'text-yellow-400'
+                  }`}
+                >
                   {p.selectedCards?.length || 0}/{cardsNeeded}
                 </span>
               </div>
-              {p.id === player.id && <span className="text-xs text-blue-400">(You)</span>}
+              {p.id === player.id && (
+                <span className="text-xs text-blue-400">(You)</span>
+              )}
               {p.selectedCards && p.selectedCards.length === cardsNeeded && (
                 <span className="text-xs text-green-400">✓ Ready</span>
               )}
@@ -274,7 +302,9 @@ export default function MultiplayerCardSelectionScreen({ roomId, player, onSelec
           {/* Selected Cards */}
           {selectedCards.length > 0 && (
             <div>
-              <h3 className="text-lg font-semibold mb-3">Your Selected Cards ({selectedCards.length}/{cardsNeeded})</h3>
+              <h3 className="text-lg font-semibold mb-3">
+                Your Selected Cards ({selectedCards.length}/{cardsNeeded})
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                 {selectedCards.map((card) => (
                   <div
@@ -282,8 +312,12 @@ export default function MultiplayerCardSelectionScreen({ roomId, player, onSelec
                     className="bg-blue-500/20 border border-blue-500 p-4 rounded-lg cursor-pointer hover:bg-blue-500/30"
                     onClick={() => handleCardDeselect(card.word)}
                   >
-                    <h2 className="font-bold text-center text-2xl mb-2">{card.word}</h2>
-                    <p className="text-center text-sm text-gray-400 mb-2">Level {card.level}</p>
+                    <h2 className="font-bold text-center text-2xl mb-2">
+                      {card.word}
+                    </h2>
+                    <p className="text-center text-sm text-gray-400 mb-2">
+                      Level {card.level}
+                    </p>
                     <p className="text-sm text-center">{card.description}</p>
                   </div>
                 ))}
@@ -296,19 +330,26 @@ export default function MultiplayerCardSelectionScreen({ roomId, player, onSelec
             <h3 className="text-lg font-semibold mb-3">Available Cards</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {availableCards.map((card) => {
-                const isSelected = selectedCards.some(c => c.word === card.word);
+                const isSelected = selectedCards.some(
+                  (c) => c.word === card.word
+                );
 
                 return (
                   <div
                     key={card.word}
-                    className={`p-4 rounded-lg cursor-pointer transition-colors ${isSelected
-                      ? 'bg-blue-500/20 border border-blue-500'
-                      : 'bg-gray-800 border border-gray-700 hover:border-blue-500 hover:bg-gray-700'
-                      }`}
+                    className={`p-4 rounded-lg cursor-pointer transition-colors ${
+                      isSelected
+                        ? 'bg-blue-500/20 border border-blue-500'
+                        : 'bg-gray-800 border border-gray-700 hover:border-blue-500 hover:bg-gray-700'
+                    }`}
                     onClick={() => handleCardSelect(card)}
                   >
-                    <h2 className="font-bold text-center text-2xl mb-2">{card.word}</h2>
-                    <p className="text-center text-sm text-gray-400 mb-2">Level {card.level}</p>
+                    <h2 className="font-bold text-center text-2xl mb-2">
+                      {card.word}
+                    </h2>
+                    <p className="text-center text-sm text-gray-400 mb-2">
+                      Level {card.level}
+                    </p>
                     <p className="text-sm text-center">{card.description}</p>
                   </div>
                 );

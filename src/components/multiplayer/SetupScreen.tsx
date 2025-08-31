@@ -10,7 +10,7 @@ interface Props {
   onJoinRoom: (roomId: string, player: Player) => void;
 }
 
-export default function MultiplayerSetupScreen({ onRoomCreated, onJoinRoom }: Props) {
+export default function MultiplayerSetupScreen({ onRoomCreated }: Props) {
   const [mode, setMode] = useState<'menu' | 'create' | 'join'>('menu');
   const [hostName, setHostName] = useState('');
   const [playerName, setPlayerName] = useState('');
@@ -56,7 +56,7 @@ export default function MultiplayerSetupScreen({ onRoomCreated, onJoinRoom }: Pr
     }
 
     const room = roomManager.createRoom(hostName);
-    const player = room.players.find(p => p.id === room.hostId)!;
+    const player = room.players.find((p) => p.id === room.hostId)!;
 
     // Update room settings
     roomManager.updateSettings(room.id, { players, cardsPerPlayer: cards });
@@ -91,7 +91,9 @@ export default function MultiplayerSetupScreen({ onRoomCreated, onJoinRoom }: Pr
     }
 
     // Check if name is already taken
-    const nameExists = room.players.some(p => p.name.toLowerCase() === playerName.toLowerCase());
+    const nameExists = room.players.some(
+      (p) => p.name.toLowerCase() === playerName.toLowerCase()
+    );
     if (nameExists) {
       setError('Name already taken');
       return;
@@ -194,30 +196,44 @@ export default function MultiplayerSetupScreen({ onRoomCreated, onJoinRoom }: Pr
 
           <div className="text-center space-y-2">
             <p className="text-sm text-gray-400">Players in room:</p>
-            <p className="text-lg font-semibold">{createdRoom.players.length} / {createdRoom.settings.players}</p>
+            <p className="text-lg font-semibold">
+              {createdRoom.players.length} / {createdRoom.settings.players}
+            </p>
 
             {/* Team breakdown */}
             <div className="mt-4 grid grid-cols-2 gap-4">
               <div className="bg-blue-500/20 p-3 rounded-lg">
                 <h3 className="text-sm font-semibold text-blue-400">Team 1</h3>
-                <p className="text-lg font-bold">{createdRoom.players.filter(p => p.team === 'team1').length}</p>
+                <p className="text-lg font-bold">
+                  {createdRoom.players.filter((p) => p.team === 'team1').length}
+                </p>
               </div>
               <div className="bg-green-500/20 p-3 rounded-lg">
                 <h3 className="text-sm font-semibold text-green-400">Team 2</h3>
-                <p className="text-lg font-bold">{createdRoom.players.filter(p => p.team === 'team2').length}</p>
+                <p className="text-lg font-bold">
+                  {createdRoom.players.filter((p) => p.team === 'team2').length}
+                </p>
               </div>
             </div>
 
             {/* Player list */}
             <div className="mt-4 space-y-1">
               {createdRoom.players.map((player) => (
-                <div key={player.id} className="text-sm text-gray-300 flex items-center justify-center space-x-2">
+                <div
+                  key={player.id}
+                  className="text-sm text-gray-300 flex items-center justify-center space-x-2"
+                >
                   <span>{player.name}</span>
-                  {player.isHost && <span className="text-yellow-400">(Host)</span>}
-                  <span className={`px-2 py-1 rounded text-xs ${player.team === 'team1'
-                    ? 'bg-blue-500/20 text-blue-400'
-                    : 'bg-green-500/20 text-green-400'
-                    }`}>
+                  {player.isHost && (
+                    <span className="text-yellow-400">(Host)</span>
+                  )}
+                  <span
+                    className={`px-2 py-1 rounded text-xs ${
+                      player.team === 'team1'
+                        ? 'bg-blue-500/20 text-blue-400'
+                        : 'bg-green-500/20 text-green-400'
+                    }`}
+                  >
                     {player.team === 'team1' ? 'Team 1' : 'Team 2'}
                   </span>
                 </div>

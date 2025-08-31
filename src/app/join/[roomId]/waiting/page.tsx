@@ -5,7 +5,6 @@ import { roomManager, GameRoom, Player } from '@/lib/roomManager';
 import WaitingScreen from '@/components/multiplayer/WaitingScreen';
 import MultiplayerCardSelectionScreen from '@/components/multiplayer/CardSelectionScreen';
 import MultiplayerGameScreen from '@/components/multiplayer/GameScreen';
-import { Card } from '@/components/single/GameScreen';
 
 interface Props {
   params: Promise<{ roomId: string }>;
@@ -17,7 +16,9 @@ export default function WaitingPage({ params, searchParams }: Props) {
   const resolvedSearchParams = use(searchParams);
   const [player, setPlayer] = useState<Player | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
-  const [gameState, setGameState] = useState<'waiting' | 'card-selection' | 'playing' | 'finished'>('waiting');
+  const [gameState, setGameState] = useState<
+    'waiting' | 'card-selection' | 'playing' | 'finished'
+  >('waiting');
 
   // Load player data
   useEffect(() => {
@@ -30,7 +31,9 @@ export default function WaitingPage({ params, searchParams }: Props) {
       window.location.href = '/';
       return;
     }
-    const foundPlayer = room.players.find(p => p.id === resolvedSearchParams.playerId);
+    const foundPlayer = room.players.find(
+      (p) => p.id === resolvedSearchParams.playerId
+    );
     if (!foundPlayer) {
       window.location.href = '/';
       return;
@@ -63,7 +66,7 @@ export default function WaitingPage({ params, searchParams }: Props) {
     setGameState(room.gameState);
   };
 
-  const handleCardSelectionComplete = (selectedCards: Card[]) => {
+  const handleCardSelectionComplete = () => {
     // The game will automatically transition to 'playing' state
     // when all players have selected their cards
   };

@@ -3,9 +3,9 @@ import { roomManager } from '@/lib/roomManager';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { roomId: string } }
+  { params }: { params: Promise<{ roomId: string }> }
 ) {
-  const roomId = params.roomId;
+  const { roomId } = await params;
 
   // Check if room exists
   const room = roomManager.getRoom(roomId);
@@ -19,7 +19,7 @@ export async function GET(
       // Send initial room state
       const initialData = JSON.stringify({
         type: 'room-state',
-        data: room
+        data: room,
       });
       controller.enqueue(encoder.encode(`data: ${initialData}\n\n`));
 
@@ -29,13 +29,13 @@ export async function GET(
         if (updatedRoom) {
           const data = JSON.stringify({
             type: 'room-update',
-            data: updatedRoom
+            data: updatedRoom,
           });
           controller.enqueue(encoder.encode(`data: ${data}\n\n`));
         } else {
           // Room was deleted
           const data = JSON.stringify({
-            type: 'room-deleted'
+            type: 'room-deleted',
           });
           controller.enqueue(encoder.encode(`data: ${data}\n\n`));
           clearInterval(interval);
@@ -48,16 +48,16 @@ export async function GET(
         clearInterval(interval);
         controller.close();
       });
-    }
+    },
   });
 
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
+      Connection: 'keep-alive',
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Cache-Control'
-    }
+      'Access-Control-Allow-Headers': 'Cache-Control',
+    },
   });
 }

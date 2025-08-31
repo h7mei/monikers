@@ -21,7 +21,7 @@ export function useRoomEvents(roomId: string) {
     eventSource.onmessage = (event) => {
       try {
         const { type, data } = JSON.parse(event.data);
-        
+
         switch (type) {
           case 'room-state':
           case 'room-update':
