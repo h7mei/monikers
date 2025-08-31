@@ -1,102 +1,134 @@
-# 🃏 Monikers
+# Monikers - Multiplayer Card Game
 
-This is a web-based implementation of the party game Monikers, built with Next.js and TypeScript.
+A multiplayer version of the classic Monikers card guessing game built with Next.js, TypeScript, and tRPC.
 
-## 📝 Description
+## Features
 
-Monikers is a fun and hilarious party game where players try to guess the names of people, characters, and other pop culture references on cards. The game is played in three rounds, with the same set of cards used in each round. The rules for what you can say to get your team to guess the card change each round, making it progressively more challenging and funny.
+### Single Player Mode
+- Classic Monikers gameplay
+- Multiple rounds with different guessing rules
+- Score tracking and statistics
 
-This project is a digital version of the game, allowing you to play with friends in person without needing physical cards.
+### Multiplayer Mode
+- **QR Code Room System**: Host creates a room and generates a QR code for players to join
+- **Real-time Updates**: Live synchronization between host and mobile players
+- **Mobile-Optimized**: Players can join on their phones via QR code scanning
+- **Room Management**: Create, join, and manage game rooms
 
-## ✨ Features
-
--   **🎲 Multiple Game Levels:** Includes different card decks for varying difficulty.
--   **🔄 Round-based Gameplay:** Supports the classic three-round structure of Monikers.
--   **💻 Interactive UI:** Components for game setup, card selection, gameplay, and scoring.
--   **🔊 Sound Effects:** Includes sounds for game events.
-
-## 🚀 Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+## Getting Started
 
 ### Prerequisites
-
-You need to have Node.js and npm (or yarn/pnpm) installed on your machine.
-
--   [Node.js](https://nodejs.org/) (v20 or later recommended)
--   [npm](https://www.npmjs.com/)
+- Node.js 18+ 
+- npm or yarn
 
 ### Installation
 
-1.  Clone the repository:
-    ```bash
-    git clone https://github.com/arfianadam/monikers.git
-    ```
-2.  Navigate to the project directory:
-    ```bash
-    cd monikers
-    ```
-3.  Install the dependencies:
-    ```bash
-    npm install
-    ```
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd monikers
+```
 
-### Running the Application
+2. Install dependencies:
+```bash
+npm install
+```
 
-To run the application in development mode with Turbopack:
-
+3. Start the development server:
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-## 📜 Available Scripts
+## How to Play Multiplayer
 
-In the project directory, you can run the following commands:
+### For Host (Desktop)
+1. Click "Multiplayer" on the main menu
+2. Click "Create Room"
+3. Enter your name and game settings
+4. Click "Create Room" to generate a room
+5. Share the QR code with players
+6. Wait for players to join
+7. Click "Start Game" when ready
 
--   `npm run dev`: 🏃 Runs the app in development mode.
--   `npm run build`: 📦 Builds the app for production.
--   `npm run start`: 🚀 Starts the production server.
--   `npm run lint`: 🔍 Lints the source code.
--   `npm run lint:fix`: 🛠️ Lints and automatically fixes issues.
--   `npm run format`: 🎨 Formats the code with Prettier.
--   `npm run format:check`: ✅ Checks for formatting issues.
--   `npm run check`: 📋 Runs both linting and format checking.
+### For Players (Mobile)
+1. Scan the QR code shared by the host
+2. Enter your name
+3. Click "Join Room"
+4. Keep the mobile screen open during the game
+5. Watch for your turn and game updates
 
-## 🛠️ Technologies Used
+## Technology Stack
 
--   [Next.js](https://nextjs.org/) - React Framework
--   [React](https://reactjs.org/) - JavaScript Library
--   [TypeScript](https://www.typescriptlang.org/) - Typed JavaScript
--   [Tailwind CSS](https://tailwindcss.com/) - CSS Framework
--   [ESLint](https://eslint.org/) - Linter
--   [Prettier](https://prettier.io/) - Code Formatter
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Styling**: Tailwind CSS
+- **API**: tRPC for type-safe server communication
+- **Real-time**: Server-Sent Events (SSE)
+- **QR Codes**: qrcode library
+- **State Management**: React hooks with tRPC
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-.
-├── public/
-│   ├── sounds/
-│   └── *.svg
-├── src/
-│   ├── app/
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── components/
-│   │   ├── ui/
-│   │   ├── CardSelectionScreen.tsx
-│   │   ├── GameScreen.tsx
-│   │   ├── ScoreScreen.tsx
-│   │   └── SetupScreen.tsx
-│   ├── data/
-│   │   ├── cards-level1.json
-│   │   └── ...
-│   └── lib/
-│       └── utils.ts
-├── next.config.ts
-├── package.json
-└── tsconfig.json
+src/
+├── app/                    # Next.js app router
+│   ├── api/               # API routes (tRPC, SSE)
+│   ├── join/[roomId]/     # Mobile join page
+│   └── page.tsx           # Main app page
+├── components/            # React components
+│   ├── ui/               # Reusable UI components
+│   ├── GameScreen.tsx    # Main game interface
+│   ├── MultiplayerSetupScreen.tsx  # Multiplayer setup
+│   ├── MobilePlayerView.tsx        # Mobile player interface
+│   └── QRCodeDisplay.tsx # QR code generation
+├── lib/                  # Utility libraries
+│   ├── roomManager.ts    # Room management logic
+│   ├── trpc.ts          # tRPC server setup
+│   ├── trpcClient.ts   # tRPC client setup
+│   └── useRoomEvents.ts # SSE hook for real-time updates
+└── data/                # Game data and cards
 ```
+
+## API Endpoints
+
+### tRPC Routes
+- `room.createRoom` - Create a new game room
+- `room.joinRoom` - Join an existing room
+- `room.getRoom` - Get room information
+- `room.updateGameState` - Update game state
+- `room.leaveRoom` - Leave a room
+
+### Server-Sent Events
+- `/api/room/[roomId]/events` - Real-time room updates
+
+## Development
+
+### Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run format` - Format code with Prettier
+
+### Adding New Features
+1. The game uses tRPC for type-safe API calls
+2. Real-time updates are handled via Server-Sent Events
+3. Room management is centralized in `roomManager.ts`
+4. Mobile interface is optimized for phone screens
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+© arfianadam
+
+---
+
+**Note**: This is a multiplayer implementation of the classic Monikers game. Players use their phones to join via QR codes while the host manages the game on desktop.
