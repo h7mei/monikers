@@ -3,7 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 import React, { useState } from 'react';
-import { trpc } from '@/lib/trpcClient';
+import { trpc } from '@/server/trpcClient';
 
 export default function TRPCProvider({
   children,
@@ -15,7 +15,7 @@ export default function TRPCProvider({
     trpc.createClient({
       links: [
         httpBatchLink({
-          url: '/api/trpc',
+          url: '/api',
         }),
       ],
     })

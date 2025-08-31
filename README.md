@@ -93,7 +93,7 @@ src/
 ├── lib/                  # Utility libraries
 │   ├── roomManager.ts    # Room management logic
 │   ├── trpc.ts          # tRPC server setup
-│   ├── trpcClient.ts   # tRPC client setup
+│   ├── trpcClient.ts   # tRPC client setup (moved to /server)
 │   └── useRoomEvents.ts # SSE hook for real-time updates
 └── data/                # Game data and cards
 ```
@@ -110,7 +110,7 @@ src/
 
 ### Server-Sent Events
 
-- `/api/room/[roomId]/events` - Real-time room updates
+- tRPC procedures for all room operations and real-time updates
 
 ## Development
 
