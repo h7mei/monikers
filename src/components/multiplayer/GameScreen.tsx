@@ -566,12 +566,13 @@ export default function MultiplayerGameScreen({ roomId, player }: Props) {
   }
 
   const currentPlayer = getCurrentPlayer();
-  const roundDescription = `Round ${currentRound}: ${currentRound === 1
+  const roundDescription = `Round ${currentRound}: ${
+    currentRound === 1
       ? 'Free Talking'
       : currentRound === 2
         ? 'One Word'
         : 'Expressions'
-    }`;
+  }`;
 
   // Show round result monitor when all questions are answered
   if (showRoundResultMonitor) {
@@ -630,10 +631,10 @@ export default function MultiplayerGameScreen({ roomId, player }: Props) {
               <p className="text-gray-400">Round Winner</p>
               <p className="text-xl font-bold text-yellow-400">
                 {getTeamScore('team1', currentRound) >
-                  getTeamScore('team2', currentRound)
+                getTeamScore('team2', currentRound)
                   ? 'Team 1'
                   : getTeamScore('team2', currentRound) >
-                    getTeamScore('team1', currentRound)
+                      getTeamScore('team1', currentRound)
                     ? 'Team 2'
                     : 'Tie'}
               </p>
@@ -1021,10 +1022,11 @@ export default function MultiplayerGameScreen({ roomId, player }: Props) {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">{roundDescription}</h1>
           <div
-            className={`inline-block px-6 py-3 rounded-full text-lg font-semibold ${currentTeam === 'team1'
+            className={`inline-block px-6 py-3 rounded-full text-lg font-semibold ${
+              currentTeam === 'team1'
                 ? 'bg-blue-500/20 text-blue-400 border border-blue-500'
                 : 'bg-green-500/20 text-green-400 border border-green-500'
-              }`}
+            }`}
           >
             {currentTeam === 'team1' ? 'Team 1' : 'Team 2'}&apos;s Turn
           </div>
@@ -1062,10 +1064,11 @@ export default function MultiplayerGameScreen({ roomId, player }: Props) {
             {isMyTurn && turnStarted && (
               <div className="text-center mb-8">
                 <div
-                  className={`text-6xl font-mono font-bold ${playerTimers[player.id] <= 10
+                  className={`text-6xl font-mono font-bold ${
+                    playerTimers[player.id] <= 10
                       ? 'text-red-500 animate-pulse'
                       : 'text-blue-500'
-                    }`}
+                  }`}
                 >
                   {formatTime(playerTimers[player.id] || 0)}
                 </div>
@@ -1157,10 +1160,11 @@ export default function MultiplayerGameScreen({ roomId, player }: Props) {
                   ⏹️ End Turn
                 </button>
                 <button
-                  className={`font-bold py-4 px-6 rounded-lg text-lg ${(playerSkipCounts[player.id] || 0) >= 2
+                  className={`font-bold py-4 px-6 rounded-lg text-lg ${
+                    (playerSkipCounts[player.id] || 0) >= 2
                       ? 'bg-gray-500 cursor-not-allowed'
                       : 'bg-red-500 hover:bg-red-700 text-white'
-                    }`}
+                  }`}
                   onClick={handleSkipCard}
                   disabled={(playerSkipCounts[player.id] || 0) >= 2}
                 >
@@ -1247,16 +1251,18 @@ export default function MultiplayerGameScreen({ roomId, player }: Props) {
           {room.players.map((p, index) => (
             <div
               key={p.id}
-              className={`p-4 rounded-lg border-2 ${index === currentPlayerIndex && roundStarted
+              className={`p-4 rounded-lg border-2 ${
+                index === currentPlayerIndex && roundStarted
                   ? 'border-blue-500 bg-blue-500/20'
                   : 'border-gray-700 bg-gray-800'
-                }`}
+              }`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-semibold">{p.name}</span>
                 <span
-                  className={`text-sm ${p.team === 'team1' ? 'text-blue-400' : 'text-green-400'
-                    }`}
+                  className={`text-sm ${
+                    p.team === 'team1' ? 'text-blue-400' : 'text-green-400'
+                  }`}
                 >
                   {p.team === 'team1' ? 'Team 1' : 'Team 2'}
                 </span>
