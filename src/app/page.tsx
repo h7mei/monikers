@@ -2,17 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import SetupScreen from '@/components/single/SetupScreen';
-import MultiplayerSetupScreen from '@/components/multiplayer/SetupScreen';
 import CardSelectionScreen from '@/components/single/CardSelectionScreen';
 import GameScreen, {
   Card,
   ScoresByRound,
 } from '@/components/single/GameScreen';
 import ScoreScreen from '@/components/single/ScoreScreen';
-import { GameRoom, Player, roomManager } from '@/lib/roomManager';
+import { } from '@/lib/roomManager';
 
 export default function Home() {
-  const [mode, setMode] = useState<'menu' | 'single' | 'multiplayer'>('menu');
+  const [mode, setMode] = useState<'menu' | 'single'>('menu');
 
   // Single player state
   const [stage, setStage] = useState('setup');
@@ -25,17 +24,13 @@ export default function Home() {
   });
   const [round, setRound] = useState(1);
 
-  // Multiplayer state
-  const [room, setRoom] = useState<GameRoom | null>(null);
-  const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
-
   const handleSinglePlayer = () => {
     setMode('single');
     setStage('setup');
   };
 
   const handleMultiplayer = () => {
-    setMode('multiplayer');
+    window.location.href = '/multiplayer';
   };
 
   const handleBackToMenu = () => {
@@ -49,8 +44,6 @@ export default function Home() {
       team2: {},
     });
     setRound(1);
-    setRoom(null);
-    setCurrentPlayer(null);
   };
 
   // Single player handlers
@@ -92,38 +85,7 @@ export default function Home() {
     setRound(1);
   };
 
-  // Multiplayer handlers
-  const handleRoomCreated = (newRoom: GameRoom, player: Player) => {
-    setRoom(newRoom);
-    setCurrentPlayer(player);
-  };
-
-  const handleJoinRoom = () => {
-    // This would typically redirect to the room
-    // Joining room logic would go here
-  };
-
-  // Check if game has started for the host
-  useEffect(() => {
-    if (!room || !currentPlayer) return;
-
-    const checkGameState = () => {
-      const updatedRoom = roomManager.getRoom(room.id);
-      if (updatedRoom && updatedRoom.gameState !== 'waiting') {
-        // Game has started, redirect host to game
-        const gameUrl = `/join/${room.id}/waiting?playerId=${currentPlayer.id}`;
-        window.location.href = gameUrl;
-      }
-    };
-
-    // Check immediately
-    checkGameState();
-
-    // Poll for game state changes
-    const interval = setInterval(checkGameState, 1000);
-
-    return () => clearInterval(interval);
-  }, [room, currentPlayer]);
+  // Multiplayer now lives under /multiplayer route
 
   return (
     <main className="bg-gray-900">
@@ -176,23 +138,6 @@ export default function Home() {
             />
           )}
         </>
-      )}
-
-      {mode === 'multiplayer' && (
-        <MultiplayerSetupScreen
-          onRoomCreated={handleRoomCreated}
-          onJoinRoom={handleJoinRoom}
-        />
-      )}
-
-      {/* Back to menu button for multiplayer */}
-      {mode === 'multiplayer' && (
-        <button
-          className="fixed top-4 left-4 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
-          onClick={handleBackToMenu}
-        >
-          ← Back to Menu
-        </button>
       )}
     </main>
   );

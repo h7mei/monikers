@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { roomManager, Player, GameRoom } from '@/lib/roomManager';
 import { Card } from '@/components/single/GameScreen';
+import { useRoomChannel } from '@/hooks/useRoomChannel';
 
 interface Props {
   roomId: string;
@@ -29,26 +30,26 @@ export default function PlayerView({
   const [room, setRoom] = useState<GameRoom | null>(null);
 
   useEffect(() => {
-    const loadRoom = () => {
-      const roomData = roomManager.getRoom(roomId);
-      if (roomData) {
-        setRoom(roomData);
-      }
-    };
-
-    loadRoom();
-    const interval = setInterval(loadRoom, 1000);
-    return () => clearInterval(interval);
+    const roomData = roomManager.getRoom(roomId);
+    if (roomData) setRoom(roomData);
   }, [roomId]);
 
+  const handleRealtimeUpdate = useCallback(() => {
+    const roomData = roomManager.getRoom(roomId);
+    if (roomData) setRoom(roomData);
+  }, [roomId]);
+
+  useRoomChannel(roomId, handleRealtimeUpdate, () => {
+    window.location.href = '/';
+  }, handleRealtimeUpdate);
+
   const isMyTurn = currentPlayerId === player.id;
-  const roundDescription = `Round ${currentRound}: ${
-    currentRound === 1
+  const roundDescription = `Round ${currentRound}: ${currentRound === 1
       ? 'Free Talking'
       : currentRound === 2
         ? 'One Word'
         : 'Expressions'
-  }`;
+    }`;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -70,11 +71,10 @@ export default function PlayerView({
             <p className="text-gray-400">{player.isHost ? 'Host' : 'Player'}</p>
             {player.team && (
               <span
-                className={`px-2 py-1 rounded text-xs ${
-                  player.team === 'team1'
+                className={`px-2 py-1 rounded text-xs ${player.team === 'team1'
                     ? 'bg-blue-500/20 text-blue-400'
                     : 'bg-green-500/20 text-green-400'
-                }`}
+                  }`}
               >
                 {player.team === 'team1' ? 'Team 1' : 'Team 2'}
               </span>
@@ -96,9 +96,8 @@ export default function PlayerView({
         {/* Timer */}
         <div className="text-center">
           <div
-            className={`text-4xl font-mono font-bold ${
-              timer <= 10 ? 'text-red-500 animate-pulse' : 'text-blue-500'
-            }`}
+            className={`text-4xl font-mono font-bold ${timer <= 10 ? 'text-red-500 animate-pulse' : 'text-blue-500'
+              }`}
           >
             {formatTime(timer)}
           </div>

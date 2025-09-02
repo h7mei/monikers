@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { roomManager, GameRoom, Player, Card } from '@/lib/roomManager';
+import { useRoomChannel } from '@/hooks/useRoomChannel';
 import cards1 from '@/data/cards-level1.json';
 import cards2 from '@/data/cards-level2.json';
 import cards3 from '@/data/cards-level3.json';
@@ -42,61 +43,45 @@ export default function MultiplayerGameScreen({ roomId, player }: Props) {
   >({});
   const [turnStarted, setTurnStarted] = useState(false);
 
-  // Load room data
-  useEffect(() => {
-    const loadRoom = () => {
-      const roomData = roomManager.getRoom(roomId);
-      if (roomData) {
-        setRoom(roomData);
-        setCurrentRound(roomData.currentRound || 1);
-        setScores(roomData.scores || { team1: {}, team2: {} });
+  // Load room data and subscribe for realtime updates
+  const loadFromRoom = useCallback(() => {
+    const roomData = roomManager.getRoom(roomId);
+    if (!roomData) return;
+    setRoom(roomData);
+    setCurrentRound(roomData.currentRound || 1);
+    setScores(roomData.scores || { team1: {}, team2: {} });
+    if (roomData.currentTeam) setCurrentTeam(roomData.currentTeam);
+    if (roomData.timer !== undefined) setTimer(roomData.timer);
+    if (roomData.isRoundActive !== undefined) setIsRoundActive(roomData.isRoundActive);
+    if (roomData.roundStarted !== undefined) setRoundStarted(roomData.roundStarted);
+    if (roomData.currentPlayerIndex !== undefined) setCurrentPlayerIndex(roomData.currentPlayerIndex);
+    if (roomData.usedCards) setUsedCards(new Set(roomData.usedCards));
+    if (roomData.currentCard !== undefined) setCurrentCard(roomData.currentCard);
+    if (roomData.playerTimers) setPlayerTimers(roomData.playerTimers);
+    if (roomData.playerSkipCounts) setPlayerSkipCounts(roomData.playerSkipCounts);
+    if (roomData.turnStarted !== undefined) setTurnStarted(roomData.turnStarted);
 
-        // Sync game state from room
-        if (roomData.currentTeam) setCurrentTeam(roomData.currentTeam);
-        if (roomData.timer !== undefined) setTimer(roomData.timer);
-        if (roomData.isRoundActive !== undefined)
-          setIsRoundActive(roomData.isRoundActive);
-        if (roomData.roundStarted !== undefined)
-          setRoundStarted(roomData.roundStarted);
-        if (roomData.currentPlayerIndex !== undefined)
-          setCurrentPlayerIndex(roomData.currentPlayerIndex);
-        if (roomData.usedCards) setUsedCards(new Set(roomData.usedCards));
-        if (roomData.currentCard !== undefined)
-          setCurrentCard(roomData.currentCard);
-        // Sync individual player state
-        if (roomData.playerTimers) setPlayerTimers(roomData.playerTimers);
-        if (roomData.playerSkipCounts)
-          setPlayerSkipCounts(roomData.playerSkipCounts);
-        if (roomData.turnStarted !== undefined)
-          setTurnStarted(roomData.turnStarted);
-
-        // Load all selected cards from all players and get actual descriptions and levels
-        const allSelectedCards = roomManager.getAllSelectedCards(roomId);
-        const cardsWithDescriptions = allSelectedCards.map((card) => {
-          // Find the actual card data to get the description and level
-          const actualCard = allCardData.find(
-            (c: GameCard) => c.word === card.text
-          );
-          return {
-            ...card,
-            id: card.text, // Ensure consistent ID mapping
-            description: actualCard?.description || `Describe: ${card.text}`,
-            level: actualCard?.level || 1, // Add level information
-          };
-        });
-
-        // Randomize the entire card pool
-        const shuffledCards = [...cardsWithDescriptions].sort(
-          () => Math.random() - 0.5
-        );
-        setAllCards(shuffledCards);
-      }
-    };
-
-    loadRoom();
-    const interval = setInterval(loadRoom, 1000);
-    return () => clearInterval(interval);
+    const allSelectedCards = roomManager.getAllSelectedCards(roomId);
+    const cardsWithDescriptions = allSelectedCards.map((card) => {
+      const actualCard = allCardData.find((c: GameCard) => c.word === card.text);
+      return {
+        ...card,
+        id: card.text,
+        description: actualCard?.description || `Describe: ${card.text}`,
+        level: actualCard?.level || 1,
+      };
+    });
+    const shuffledCards = [...cardsWithDescriptions].sort(() => Math.random() - 0.5);
+    setAllCards(shuffledCards);
   }, [roomId]);
+
+  useEffect(() => {
+    loadFromRoom();
+  }, [loadFromRoom]);
+
+  useRoomChannel(roomId, loadFromRoom, () => {
+    window.location.href = '/';
+  }, loadFromRoom);
 
   // Initialize game when all cards are loaded
   useEffect(() => {
@@ -507,23 +492,9 @@ export default function MultiplayerGameScreen({ roomId, player }: Props) {
   }, [room?.gameState]);
 
   // Check if room has been deleted
-  useEffect(() => {
-    const checkRoomExists = () => {
-      const currentRoom = roomManager.getRoom(roomId);
-      if (!currentRoom) {
-        // Room has been deleted, redirect to home
-        window.location.href = '/';
-      }
-    };
-
-    // Check immediately
-    checkRoomExists();
-
-    // Set up interval to check periodically
-    const interval = setInterval(checkRoomExists, 2000);
-
-    return () => clearInterval(interval);
-  }, [roomId]);
+  useRoomChannel(roomId, undefined, () => {
+    window.location.href = '/';
+  });
 
   // Ensure current card is set when turn changes
   useEffect(() => {
@@ -558,13 +529,12 @@ export default function MultiplayerGameScreen({ roomId, player }: Props) {
   }
 
   const currentPlayer = getCurrentPlayer();
-  const roundDescription = `Round ${currentRound}: ${
-    currentRound === 1
+  const roundDescription = `Round ${currentRound}: ${currentRound === 1
       ? 'Free Talking'
       : currentRound === 2
         ? 'One Word'
         : 'Expressions'
-  }`;
+    }`;
 
   // Show round result monitor when all questions are answered
   if (showRoundResultMonitor) {
@@ -623,10 +593,10 @@ export default function MultiplayerGameScreen({ roomId, player }: Props) {
               <p className="text-gray-400">Round Winner</p>
               <p className="text-xl font-bold text-yellow-400">
                 {getTeamScore('team1', currentRound) >
-                getTeamScore('team2', currentRound)
+                  getTeamScore('team2', currentRound)
                   ? 'Team 1'
                   : getTeamScore('team2', currentRound) >
-                      getTeamScore('team1', currentRound)
+                    getTeamScore('team1', currentRound)
                     ? 'Team 2'
                     : 'Tie'}
               </p>
@@ -1014,11 +984,10 @@ export default function MultiplayerGameScreen({ roomId, player }: Props) {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">{roundDescription}</h1>
           <div
-            className={`inline-block px-6 py-3 rounded-full text-lg font-semibold ${
-              currentTeam === 'team1'
+            className={`inline-block px-6 py-3 rounded-full text-lg font-semibold ${currentTeam === 'team1'
                 ? 'bg-blue-500/20 text-blue-400 border border-blue-500'
                 : 'bg-green-500/20 text-green-400 border border-green-500'
-            }`}
+              }`}
           >
             {currentTeam === 'team1' ? 'Team 1' : 'Team 2'}&apos;s Turn
           </div>
@@ -1056,11 +1025,10 @@ export default function MultiplayerGameScreen({ roomId, player }: Props) {
             {isMyTurn && turnStarted && (
               <div className="text-center mb-8">
                 <div
-                  className={`text-6xl font-mono font-bold ${
-                    playerTimers[player.id] <= 10
+                  className={`text-6xl font-mono font-bold ${playerTimers[player.id] <= 10
                       ? 'text-red-500 animate-pulse'
                       : 'text-blue-500'
-                  }`}
+                    }`}
                 >
                   {formatTime(playerTimers[player.id] || 0)}
                 </div>
@@ -1152,11 +1120,10 @@ export default function MultiplayerGameScreen({ roomId, player }: Props) {
                   ⏹️ End Turn
                 </button>
                 <button
-                  className={`font-bold py-4 px-6 rounded-lg text-lg ${
-                    (playerSkipCounts[player.id] || 0) >= 2
+                  className={`font-bold py-4 px-6 rounded-lg text-lg ${(playerSkipCounts[player.id] || 0) >= 2
                       ? 'bg-gray-500 cursor-not-allowed'
                       : 'bg-red-500 hover:bg-red-700 text-white'
-                  }`}
+                    }`}
                   onClick={handleSkipCard}
                   disabled={(playerSkipCounts[player.id] || 0) >= 2}
                 >
@@ -1243,18 +1210,16 @@ export default function MultiplayerGameScreen({ roomId, player }: Props) {
           {room.players.map((p, index) => (
             <div
               key={p.id}
-              className={`p-4 rounded-lg border-2 ${
-                index === currentPlayerIndex && roundStarted
+              className={`p-4 rounded-lg border-2 ${index === currentPlayerIndex && roundStarted
                   ? 'border-blue-500 bg-blue-500/20'
                   : 'border-gray-700 bg-gray-800'
-              }`}
+                }`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-semibold">{p.name}</span>
                 <span
-                  className={`text-sm ${
-                    p.team === 'team1' ? 'text-blue-400' : 'text-green-400'
-                  }`}
+                  className={`text-sm ${p.team === 'team1' ? 'text-blue-400' : 'text-green-400'
+                    }`}
                 >
                   {p.team === 'team1' ? 'Team 1' : 'Team 2'}
                 </span>

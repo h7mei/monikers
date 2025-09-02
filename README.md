@@ -1,6 +1,6 @@
 # Monikers - Multiplayer Card Game
 
-A multiplayer version of the classic Monikers card guessing game built with Next.js, TypeScript, and tRPC.
+A multiplayer version of the classic Monikers card guessing game built with Next.js, TypeScript, and Pusher for real-time communication.
 
 ## Features
 
@@ -9,13 +9,17 @@ A multiplayer version of the classic Monikers card guessing game built with Next
 - Classic Monikers gameplay
 - Multiple rounds with different guessing rules
 - Score tracking and statistics
+- Card selection and game setup
 
 ### Multiplayer Mode
 
 - **QR Code Room System**: Host creates a room and generates a QR code for players to join
-- **Real-time Updates**: Live synchronization between host and mobile players
+- **Real-time Updates**: Live synchronization between host and mobile players using Pusher
 - **Mobile-Optimized**: Players can join on their phones via QR code scanning
 - **Room Management**: Create, join, and manage game rooms
+- **Team-based Gameplay**: Support for team-based scoring and gameplay
+- **Card Selection**: Players can select cards before the game begins
+- **Timer System**: Individual player timers and round management
 
 ## Getting Started
 
@@ -23,6 +27,20 @@ A multiplayer version of the classic Monikers card guessing game built with Next
 
 - Node.js 18+
 - npm or yarn
+- Pusher account and credentials
+
+### Environment Variables
+
+Create a `.env.local` file with your Pusher credentials:
+
+```bash
+PUSHER_APP_ID=your_app_id
+PUSHER_KEY=your_key
+PUSHER_SECRET=your_secret
+PUSHER_CLUSTER=your_cluster
+NEXT_PUBLIC_PUSHER_KEY=your_key
+NEXT_PUBLIC_PUSHER_CLUSTER=your_cluster
+```
 
 ### Installation
 
@@ -57,77 +75,110 @@ npm run dev
 4. Click "Create Room" to generate a room
 5. Share the QR code with players
 6. Wait for players to join
-7. Click "Start Game" when ready
+7. Start card selection when ready
+8. Click "Start Game" to begin gameplay
 
 ### For Players (Mobile)
 
 1. Scan the QR code shared by the host
 2. Enter your name
 3. Click "Join Room"
-4. Keep the mobile screen open during the game
-5. Watch for your turn and game updates
+4. Select your cards during the card selection phase
+5. Keep the mobile screen open during the game
+6. Watch for your turn and game updates
 
 ## Technology Stack
 
 - **Frontend**: Next.js 15, React 19, TypeScript
-- **Styling**: Tailwind CSS
-- **API**: tRPC for type-safe server communication
-- **Real-time**: Server-Sent Events (SSE)
+- **Styling**: Tailwind CSS 4
+- **Real-time**: Pusher for WebSocket communication
 - **QR Codes**: qrcode library
-- **State Management**: React hooks with tRPC
+- **State Management**: React hooks with custom room management
+- **Database**: PostgreSQL with pg driver
+- **Development**: Turbopack for faster builds
 
 ## Project Structure
 
 ```
 src/
 ├── app/                    # Next.js app router
-│   ├── api/               # API routes (tRPC, SSE)
+│   ├── api/               # API routes
+│   │   └── pusher/        # Pusher webhook endpoints
 │   ├── join/[roomId]/     # Mobile join page
+│   ├── multiplayer/       # Multiplayer game routes
+│   ├── set/               # Game setup routes
 │   └── page.tsx           # Main app page
 ├── components/            # React components
 │   ├── ui/               # Reusable UI components
-│   ├── GameScreen.tsx    # Main game interface
-│   ├── MultiplayerSetupScreen.tsx  # Multiplayer setup
-│   ├── MobilePlayerView.tsx        # Mobile player interface
-│   └── QRCodeDisplay.tsx # QR code generation
+│   ├── single/           # Single player components
+│   │   ├── SetupScreen.tsx
+│   │   ├── CardSelectionScreen.tsx
+│   │   ├── GameScreen.tsx
+│   │   └── ScoreScreen.tsx
+│   └── multiplayer/      # Multiplayer components
+│       ├── SetupScreen.tsx
+│       ├── CardSelectionScreen.tsx
+│       ├── GameScreen.tsx
+│       ├── PlayerView.tsx
+│       ├── WaitingScreen.tsx
+│       ├── QRCodeDisplay.tsx
+│       └── RealtimeNav.tsx
+├── hooks/                # Custom React hooks
+│   └── useRoomChannel.ts # Pusher channel management
 ├── lib/                  # Utility libraries
 │   ├── roomManager.ts    # Room management logic
-│   ├── trpc.ts          # tRPC server setup
-│   ├── trpcClient.ts   # tRPC client setup (moved to /server)
-│   └── useRoomEvents.ts # SSE hook for real-time updates
+│   ├── useRoomEvents.ts  # Legacy room events (deprecated)
+│   └── utils.ts          # Utility functions
+├── pusher/               # Pusher configuration
+│   ├── client.ts         # Client-side Pusher setup
+│   └── server.ts         # Server-side Pusher setup
 └── data/                # Game data and cards
 ```
 
+## Real-time Communication
+
+### Pusher Channels
+
+The game uses Pusher channels for real-time communication:
+
+- **Room Channels**: Each room has its own channel (`room-{roomId}`)
+- **Events**: 
+  - `room:updated` - Room state changes
+  - `room:deleted` - Room deletion
+  - `room:state` - Room state updates
+
+### Room Management
+
+- **Local Storage**: Rooms are persisted in browser localStorage
+- **Real-time Sync**: All room updates are broadcast to connected players
+- **Auto-reconnection**: Automatic reconnection handling for network issues
+
 ## API Endpoints
 
-### tRPC Routes
+### Pusher Webhooks
 
-- `room.createRoom` - Create a new game room
-- `room.joinRoom` - Join an existing room
-- `room.getRoom` - Get room information
-- `room.updateGameState` - Update game state
-- `room.leaveRoom` - Leave a room
-
-### Server-Sent Events
-
-- tRPC procedures for all room operations and real-time updates
+- `/api/pusher/trigger` - Trigger Pusher events for room updates
 
 ## Development
 
 ### Available Scripts
 
-- `npm run dev` - Start development server
+- `npm run dev` - Start development server with Turbopack
 - `npm run build` - Build for production
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint issues
 - `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
+- `npm run check` - Run lint and format checks
 
 ### Adding New Features
 
-1. The game uses tRPC for type-safe API calls
-2. Real-time updates are handled via Server-Sent Events
-3. Room management is centralized in `roomManager.ts`
+1. The game uses Pusher for real-time communication
+2. Room management is centralized in `roomManager.ts`
+3. Components are organized by game mode (single/multiplayer)
 4. Mobile interface is optimized for phone screens
+5. Use the `useRoomChannel` hook for real-time updates
 
 ## Contributing
 
@@ -143,4 +194,4 @@ src/
 
 ---
 
-**Note**: This is a multiplayer implementation of the classic Monikers game. Players use their phones to join via QR codes while the host manages the game on desktop.
+**Note**: This is a multiplayer implementation of the classic Monikers game. Players use their phones to join via QR codes while the host manages the game on desktop. The game now uses Pusher for reliable real-time communication instead of Server-Sent Events.

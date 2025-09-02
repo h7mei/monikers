@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { roomManager, GameRoom, Player } from '@/lib/roomManager';
+import { useRoomChannel } from '@/hooks/useRoomChannel';
 
 interface Props {
   params: Promise<{
@@ -61,19 +62,15 @@ export default function TeamSelectionPage({ params, searchParams }: Props) {
     }
   }, [resolvedParams]);
 
-  // Poll for room updates
-  useEffect(() => {
-    if (!room || !resolvedParams) return;
+  const handleRealtimeUpdate = useCallback(() => {
+    if (!resolvedParams) return;
+    const updatedRoom = roomManager.getRoom(resolvedParams.roomId);
+    if (updatedRoom) setRoom(updatedRoom);
+  }, [resolvedParams]);
 
-    const interval = setInterval(() => {
-      const updatedRoom = roomManager.getRoom(resolvedParams.roomId);
-      if (updatedRoom) {
-        setRoom(updatedRoom);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [room, resolvedParams]);
+  useRoomChannel(resolvedParams?.roomId, handleRealtimeUpdate, () => {
+    setError('Room was deleted');
+  }, handleRealtimeUpdate);
 
   const handleJoinTeam = () => {
     if (!playerName.trim()) {
@@ -214,13 +211,12 @@ export default function TeamSelectionPage({ params, searchParams }: Props) {
 
           {/* Team 1 */}
           <div
-            className={`p-4 rounded-lg border-2 transition-colors ${
-              !isTeamAvailable('team1')
-                ? 'border-gray-600 bg-gray-700 cursor-not-allowed opacity-50'
-                : selectedTeam === 'team1'
-                  ? 'border-blue-500 bg-blue-500/20 cursor-pointer'
-                  : 'border-gray-700 bg-gray-800 hover:border-blue-400 cursor-pointer'
-            }`}
+            className={`p-4 rounded-lg border-2 transition-colors ${!isTeamAvailable('team1')
+              ? 'border-gray-600 bg-gray-700 cursor-not-allowed opacity-50'
+              : selectedTeam === 'team1'
+                ? 'border-blue-500 bg-blue-500/20 cursor-pointer'
+                : 'border-gray-700 bg-gray-800 hover:border-blue-400 cursor-pointer'
+              }`}
             onClick={() => isTeamAvailable('team1') && setSelectedTeam('team1')}
           >
             <div className="flex items-center justify-between">
@@ -255,13 +251,12 @@ export default function TeamSelectionPage({ params, searchParams }: Props) {
 
           {/* Team 2 */}
           <div
-            className={`p-4 rounded-lg border-2 transition-colors ${
-              !isTeamAvailable('team2')
-                ? 'border-gray-600 bg-gray-700 cursor-not-allowed opacity-50'
-                : selectedTeam === 'team2'
-                  ? 'border-green-500 bg-green-500/20 cursor-pointer'
-                  : 'border-gray-700 bg-gray-800 hover:border-green-400 cursor-pointer'
-            }`}
+            className={`p-4 rounded-lg border-2 transition-colors ${!isTeamAvailable('team2')
+              ? 'border-gray-600 bg-gray-700 cursor-not-allowed opacity-50'
+              : selectedTeam === 'team2'
+                ? 'border-green-500 bg-green-500/20 cursor-pointer'
+                : 'border-gray-700 bg-gray-800 hover:border-green-400 cursor-pointer'
+              }`}
             onClick={() => isTeamAvailable('team2') && setSelectedTeam('team2')}
           >
             <div className="flex items-center justify-between">

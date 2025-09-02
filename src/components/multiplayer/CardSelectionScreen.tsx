@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { roomManager, GameRoom, Player } from '@/lib/roomManager';
+import { useRoomChannel } from '@/hooks/useRoomChannel';
 import cards1 from '@/data/cards-level1.json';
 import cards2 from '@/data/cards-level2.json';
 import cards3 from '@/data/cards-level3.json';
@@ -25,19 +26,20 @@ export default function MultiplayerCardSelectionScreen({
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
 
-  // Load room data
+  // Load room data once and subscribe for realtime updates
   useEffect(() => {
-    const loadRoom = () => {
-      const roomData = roomManager.getRoom(roomId);
-      if (roomData) {
-        setRoom(roomData);
-      }
-    };
-
-    loadRoom();
-    const interval = setInterval(loadRoom, 1000);
-    return () => clearInterval(interval);
+    const roomData = roomManager.getRoom(roomId);
+    if (roomData) setRoom(roomData);
   }, [roomId]);
+
+  const handleRealtimeUpdate = useCallback(() => {
+    const updatedRoom = roomManager.getRoom(roomId);
+    if (updatedRoom) setRoom(updatedRoom);
+  }, [roomId]);
+
+  useRoomChannel(roomId, handleRealtimeUpdate, () => {
+    window.location.href = '/';
+  }, handleRealtimeUpdate);
 
   // Generate available cards for this player
   useEffect(() => {
@@ -252,20 +254,18 @@ export default function MultiplayerCardSelectionScreen({
           {room.players.map((p) => (
             <div
               key={p.id}
-              className={`p-3 rounded-lg border-2 ${
-                p.selectedCards && p.selectedCards.length === cardsNeeded
+              className={`p-3 rounded-lg border-2 ${p.selectedCards && p.selectedCards.length === cardsNeeded
                   ? 'border-green-500 bg-green-500/20'
                   : 'border-gray-700 bg-gray-800'
-              }`}
+                }`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-semibold">{p.name}</span>
                 <span
-                  className={`text-sm ${
-                    p.selectedCards && p.selectedCards.length === cardsNeeded
+                  className={`text-sm ${p.selectedCards && p.selectedCards.length === cardsNeeded
                       ? 'text-green-400'
                       : 'text-yellow-400'
-                  }`}
+                    }`}
                 >
                   {p.selectedCards?.length || 0}/{cardsNeeded}
                 </span>
@@ -320,11 +320,10 @@ export default function MultiplayerCardSelectionScreen({
                 return (
                   <div
                     key={card.word}
-                    className={`p-4 rounded-lg cursor-pointer transition-colors ${
-                      isSelected
+                    className={`p-4 rounded-lg cursor-pointer transition-colors ${isSelected
                         ? 'bg-blue-500/20 border border-blue-500'
                         : 'bg-gray-800 border border-gray-700 hover:border-blue-500 hover:bg-gray-700'
-                    }`}
+                      }`}
                     onClick={() => handleCardSelect(card)}
                   >
                     <h2 className="font-bold text-center text-2xl mb-2">

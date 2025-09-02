@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useCallback } from 'react';
 import { roomManager, GameRoom, Player } from '@/lib/roomManager';
 import WaitingScreen from '@/components/multiplayer/WaitingScreen';
 import MultiplayerCardSelectionScreen from '@/components/multiplayer/CardSelectionScreen';
 import MultiplayerGameScreen from '@/components/multiplayer/GameScreen';
+import { useRoomChannel } from '@/hooks/useRoomChannel';
 
 interface Props {
   params: Promise<{ roomId: string }>;
@@ -39,27 +40,24 @@ export default function WaitingPage({ params, searchParams }: Props) {
       return;
     }
     setPlayer(foundPlayer);
+
+    // Check if game has already started
+    if (room.gameState !== 'waiting') {
+      setGameStarted(true);
+      setGameState(room.gameState);
+    }
   }, [resolvedParams.roomId, resolvedSearchParams.playerId]);
 
-  // Monitor game state
-  useEffect(() => {
-    if (!player) return;
+  const handleRealtimeUpdate = useCallback(() => {
+    const room = roomManager.getRoom(resolvedParams.roomId);
+    if (!room) return;
+    setGameState(room.gameState);
+    if (room.gameState !== 'waiting') setGameStarted(true);
+  }, [resolvedParams.roomId]);
 
-    const checkGameState = () => {
-      const room = roomManager.getRoom(resolvedParams.roomId);
-      if (!room) return;
-
-      setGameState(room.gameState);
-
-      if (room.gameState !== 'waiting') {
-        setGameStarted(true);
-      }
-    };
-
-    checkGameState();
-    const interval = setInterval(checkGameState, 1000);
-    return () => clearInterval(interval);
-  }, [player, resolvedParams.roomId]);
+  useRoomChannel(resolvedParams.roomId, handleRealtimeUpdate, () => {
+    window.location.href = '/';
+  }, handleRealtimeUpdate);
 
   const handleGameStart = (room: GameRoom) => {
     setGameStarted(true);

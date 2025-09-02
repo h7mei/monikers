@@ -1,38 +1,44 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { roomManager, GameRoom } from '@/lib/roomManager';
+import { getPusherClient } from '@/pusher/client';
 
 export default function SetPage() {
   const [rooms, setRooms] = useState<GameRoom[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Load all rooms
+  // Load all rooms and subscribe to per-room channels for realtime updates
   useEffect(() => {
     const loadRooms = () => {
       const allRooms = roomManager.getAllRooms();
       setRooms(allRooms);
     };
-
     loadRooms();
-
-    // Poll for updates every 2 seconds
-    const interval = setInterval(loadRooms, 2000);
-
-    // Listen for storage changes
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'monikers_rooms') {
-        loadRooms();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, [refreshKey]);
+
+  useEffect(() => {
+    const pusher = getPusherClient();
+    const subscriptions = rooms.map((room) => {
+      const channel = pusher.subscribe(`room-${room.id}`);
+      const handler = () => {
+        const allRooms = roomManager.getAllRooms();
+        setRooms(allRooms);
+      };
+      channel.bind('room:updated', handler);
+      channel.bind('room:deleted', handler);
+      channel.bind('room:state', handler);
+      return { channel, handler, roomId: room.id };
+    });
+    return () => {
+      subscriptions.forEach(({ channel, handler, roomId }) => {
+        channel.unbind('room:updated', handler);
+        channel.unbind('room:deleted', handler);
+        channel.unbind('room:state', handler);
+        getPusherClient().unsubscribe(`room-${roomId}`);
+      });
+    };
+  }, [rooms]);
 
   const handleRefresh = () => {
     setRefreshKey((prev) => prev + 1);

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { roomManager, GameRoom, Player } from '@/lib/roomManager';
+import { useRoomChannel } from '@/hooks/useRoomChannel';
 
 interface Props {
   roomId: string;
@@ -22,24 +23,17 @@ export default function WaitingScreen({ roomId, player, onGameStart }: Props) {
     }
   }, [roomId, player.id]);
 
-  // Poll for room updates
-  useEffect(() => {
-    if (!room) return;
+  const handleRealtimeUpdate = useCallback(() => {
+    const updatedRoom = roomManager.getRoom(roomId);
+    if (updatedRoom) {
+      setRoom(updatedRoom);
+      if (updatedRoom.gameState !== 'waiting') onGameStart(updatedRoom);
+    }
+  }, [roomId, onGameStart]);
 
-    const interval = setInterval(() => {
-      const updatedRoom = roomManager.getRoom(roomId);
-      if (updatedRoom) {
-        setRoom(updatedRoom);
-
-        // Check if game has started
-        if (updatedRoom.gameState !== 'waiting') {
-          onGameStart(updatedRoom);
-        }
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [room, roomId, onGameStart]);
+  useRoomChannel(roomId, handleRealtimeUpdate, () => {
+    window.location.href = '/';
+  }, handleRealtimeUpdate);
 
   const handleStartGame = () => {
     if (!room) return;
@@ -94,11 +88,10 @@ export default function WaitingScreen({ roomId, player, onGameStart }: Props) {
               </span>
               {player.team && (
                 <span
-                  className={`px-2 py-1 rounded text-xs ${
-                    player.team === 'team1'
+                  className={`px-2 py-1 rounded text-xs ${player.team === 'team1'
                       ? 'bg-blue-500/20 text-blue-400'
                       : 'bg-green-500/20 text-green-400'
-                  }`}
+                    }`}
                 >
                   {player.team === 'team1' ? 'Team 1' : 'Team 2'}
                 </span>

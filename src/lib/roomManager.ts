@@ -45,6 +45,24 @@ export interface GameRoom {
 class RoomManager {
   private rooms: Map<string, GameRoom> = new Map();
   private readonly STORAGE_KEY = 'monikers_rooms';
+  private isCreatingRoom = false;
+  private lastCreateTimestamp = 0;
+  private lastCreatedRoomId: string | null = null;
+  private async triggerRealtime(roomId: string, event: 'room:updated' | 'room:deleted' | 'room:state' = 'room:updated') {
+    try {
+      if (typeof fetch === 'undefined') return;
+      const snapshot = this.rooms.get(roomId) || null;
+      await fetch('/api/pusher/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channel: `room-${roomId}`,
+          event,
+          data: { roomId, room: snapshot },
+        }),
+      });
+    } catch {}
+  }
 
   constructor() {
     this.loadRoomsFromStorage();
@@ -75,15 +93,21 @@ class RoomManager {
     }
   }
 
-  private assignTeam(room: GameRoom): 'team1' | 'team2' {
-    const team1Count = room.players.filter((p) => p.team === 'team1').length;
-    const team2Count = room.players.filter((p) => p.team === 'team2').length;
-
-    // Assign to the team with fewer players
-    return team1Count <= team2Count ? 'team1' : 'team2';
-  }
-
   createRoom(hostName: string): GameRoom {
+    // Prevent rapid duplicate creations (e.g., accidental double-click or dev-mode quirks)
+    const now = Date.now();
+    if (this.isCreatingRoom && this.lastCreatedRoomId) {
+      const existing = this.rooms.get(this.lastCreatedRoomId);
+      if (existing && now - this.lastCreateTimestamp < 1000) {
+        return existing;
+      }
+    }
+    if (now - this.lastCreateTimestamp < 300) {
+      const last = this.lastCreatedRoomId ? this.rooms.get(this.lastCreatedRoomId) : null;
+      if (last) return last;
+    }
+    this.isCreatingRoom = true;
+    this.lastCreateTimestamp = now;
     const roomId = uuidv4().substring(0, 8);
     const hostId = uuidv4();
 
@@ -115,7 +139,10 @@ class RoomManager {
     };
 
     this.rooms.set(roomId, room);
+    this.lastCreatedRoomId = roomId;
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
+    this.isCreatingRoom = false;
     return room;
   }
 
@@ -127,6 +154,13 @@ class RoomManager {
   getAllRooms(): GameRoom[] {
     this.loadRoomsFromStorage();
     return Array.from(this.rooms.values());
+  }
+
+  // Apply a full snapshot received from realtime to local store
+  applySnapshot(room: GameRoom | null) {
+    if (!room) return;
+    this.rooms.set(room.id, room);
+    this.saveRoomsToStorage();
   }
 
   joinRoom(
@@ -167,6 +201,7 @@ class RoomManager {
 
     room.players.push(player);
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
     return player;
   }
 
@@ -191,6 +226,7 @@ class RoomManager {
     }
 
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, this.rooms.has(roomId) ? 'room:updated' : 'room:deleted');
     return true;
   }
 
@@ -203,6 +239,7 @@ class RoomManager {
 
     room.gameState = gameState;
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:state');
     return true;
   }
 
@@ -218,6 +255,7 @@ class RoomManager {
 
     room.settings = { ...room.settings, ...settings };
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
     return true;
   }
 
@@ -247,6 +285,7 @@ class RoomManager {
 
     player.team = team;
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
     return true;
   }
 
@@ -301,6 +340,7 @@ class RoomManager {
     player.selectedCards = cards;
     room.updatedAt = Date.now();
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
     return true;
   }
 
@@ -314,6 +354,7 @@ class RoomManager {
     room.currentPlayerIndex = playerIndex;
     room.updatedAt = Date.now();
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
     return true;
   }
 
@@ -347,6 +388,7 @@ class RoomManager {
     room.scores = scores;
     room.updatedAt = Date.now();
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
     return true;
   }
 
@@ -360,6 +402,7 @@ class RoomManager {
     room.currentRound = round;
     room.updatedAt = Date.now();
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
     return true;
   }
 
@@ -371,6 +414,7 @@ class RoomManager {
     room.currentTeam = team;
     room.updatedAt = Date.now();
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
     return true;
   }
 
@@ -381,6 +425,7 @@ class RoomManager {
     room.timer = timer;
     room.updatedAt = Date.now();
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
     return true;
   }
 
@@ -396,6 +441,7 @@ class RoomManager {
     room.roundStarted = roundStarted;
     room.updatedAt = Date.now();
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
     return true;
   }
 
@@ -406,6 +452,7 @@ class RoomManager {
     room.usedCards = usedCards;
     room.updatedAt = Date.now();
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
     return true;
   }
 
@@ -417,6 +464,7 @@ class RoomManager {
     room.currentCard = currentCard;
     room.updatedAt = Date.now();
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
     return true;
   }
 
@@ -429,6 +477,7 @@ class RoomManager {
     room.playerTimers[playerId] = timer;
     room.updatedAt = Date.now();
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
     return true;
   }
 
@@ -445,6 +494,7 @@ class RoomManager {
     room.playerSkipCounts[playerId] = skipCount;
     room.updatedAt = Date.now();
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
     return true;
   }
 
@@ -456,6 +506,7 @@ class RoomManager {
     room.turnStarted = turnStarted;
     room.updatedAt = Date.now();
     this.saveRoomsToStorage();
+    void this.triggerRealtime(roomId, 'room:updated');
     return true;
   }
 
@@ -465,6 +516,7 @@ class RoomManager {
     const deleted = this.rooms.delete(roomId);
     if (deleted) {
       this.saveRoomsToStorage();
+      void this.triggerRealtime(roomId, 'room:deleted');
     }
     return deleted;
   }

@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import QRCodeDisplay from './QRCodeDisplay';
 import { roomManager, GameRoom, Player } from '@/lib/roomManager';
+import { useRoomChannel } from '@/hooks/useRoomChannel';
 
 interface Props {
   onRoomCreated: (room: GameRoom, player: Player) => void;
@@ -11,6 +13,7 @@ interface Props {
 }
 
 export default function MultiplayerSetupScreen({ onRoomCreated }: Props) {
+  const router = useRouter();
   const [mode, setMode] = useState<'menu' | 'create' | 'join'>('menu');
   const [hostName, setHostName] = useState('');
   const [playerName, setPlayerName] = useState('');
@@ -19,41 +22,33 @@ export default function MultiplayerSetupScreen({ onRoomCreated }: Props) {
   const [cards, setCards] = useState(5);
   const [createdRoom, setCreatedRoom] = useState<GameRoom | null>(null);
   const [error, setError] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
-  // Poll for room updates when a room is created
+  // Subscribe for updates when a room is created
   useEffect(() => {
     if (!createdRoom) return;
+    const updatedRoom = roomManager.getRoom(createdRoom.id);
+    if (updatedRoom) setCreatedRoom(updatedRoom);
+  }, [createdRoom?.id]);
 
-    const interval = setInterval(() => {
-      const updatedRoom = roomManager.getRoom(createdRoom.id);
-      if (updatedRoom) {
-        setCreatedRoom(updatedRoom);
-      }
-    }, 500); // Poll every 500ms for more responsive updates
+  const handleRealtimeUpdate = useCallback(() => {
+    if (!createdRoom) return;
+    const updatedRoom = roomManager.getRoom(createdRoom.id);
+    if (updatedRoom) setCreatedRoom(updatedRoom);
+  }, [createdRoom?.id]);
 
-    // Listen for storage changes (when other tabs update the room)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'monikers_rooms' && e.newValue) {
-        const updatedRoom = roomManager.getRoom(createdRoom.id);
-        if (updatedRoom) {
-          setCreatedRoom(updatedRoom);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [createdRoom]);
+  useRoomChannel(createdRoom?.id || undefined, handleRealtimeUpdate, () => {
+    setCreatedRoom(null);
+  }, handleRealtimeUpdate);
 
   const handleCreateRoom = () => {
     if (!hostName.trim()) {
       setError('Please enter your name');
       return;
     }
+
+    if (isCreating || createdRoom) return;
+    setIsCreating(true);
 
     const room = roomManager.createRoom(hostName);
     const player = room.players.find((p) => p.id === room.hostId)!;
@@ -63,7 +58,10 @@ export default function MultiplayerSetupScreen({ onRoomCreated }: Props) {
 
     setCreatedRoom(room);
     onRoomCreated(room, player);
+    // Redirect host to game master view
+    router.push(`/join/${room.id}/game-master`);
     setError('');
+    setIsCreating(false);
   };
 
   const handleJoinRoom = () => {
@@ -102,12 +100,6 @@ export default function MultiplayerSetupScreen({ onRoomCreated }: Props) {
     // Redirect to team selection page with player name
     const teamSelectionUrl = `/join/${roomId.toLowerCase()}/team-selection?playerName=${encodeURIComponent(playerName)}`;
     window.location.href = teamSelectionUrl;
-  };
-
-  const handleStartGame = () => {
-    if (createdRoom) {
-      roomManager.updateGameState(createdRoom.id, 'card-selection');
-    }
   };
 
   return (
@@ -178,76 +170,11 @@ export default function MultiplayerSetupScreen({ onRoomCreated }: Props) {
             <button
               className="flex-1 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
               onClick={handleCreateRoom}
+              disabled={isCreating}
             >
-              Create Room
+              {isCreating ? 'Creating...' : 'Create Room'}
             </button>
           </div>
-        </div>
-      )}
-
-      {createdRoom && (
-        <div className="w-96 space-y-6">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-2">Room Created!</h2>
-            <p className="text-gray-400">Share this QR code with players</p>
-          </div>
-
-          <QRCodeDisplay roomId={createdRoom.id} />
-
-          <div className="text-center space-y-2">
-            <p className="text-sm text-gray-400">Players in room:</p>
-            <p className="text-lg font-semibold">
-              {createdRoom.players.length} / {createdRoom.settings.players}
-            </p>
-
-            {/* Team breakdown */}
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <div className="bg-blue-500/20 p-3 rounded-lg">
-                <h3 className="text-sm font-semibold text-blue-400">Team 1</h3>
-                <p className="text-lg font-bold">
-                  {createdRoom.players.filter((p) => p.team === 'team1').length}
-                </p>
-              </div>
-              <div className="bg-green-500/20 p-3 rounded-lg">
-                <h3 className="text-sm font-semibold text-green-400">Team 2</h3>
-                <p className="text-lg font-bold">
-                  {createdRoom.players.filter((p) => p.team === 'team2').length}
-                </p>
-              </div>
-            </div>
-
-            {/* Player list */}
-            <div className="mt-4 space-y-1">
-              {createdRoom.players.map((player) => (
-                <div
-                  key={player.id}
-                  className="text-sm text-gray-300 flex items-center justify-center space-x-2"
-                >
-                  <span>{player.name}</span>
-                  {player.isHost && (
-                    <span className="text-yellow-400">(Host)</span>
-                  )}
-                  <span
-                    className={`px-2 py-1 rounded text-xs ${
-                      player.team === 'team1'
-                        ? 'bg-blue-500/20 text-blue-400'
-                        : 'bg-green-500/20 text-green-400'
-                    }`}
-                  >
-                    {player.team === 'team1' ? 'Team 1' : 'Team 2'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <button
-            className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-full shadow-xl shadow-green-500/20 disabled:opacity-50"
-            onClick={handleStartGame}
-            disabled={createdRoom.players.length < 2}
-          >
-            Start Game ({createdRoom.players.length} players)
-          </button>
         </div>
       )}
 

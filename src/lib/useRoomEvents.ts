@@ -1,25 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { GameRoom } from './roomManager';
-import { trpc } from '@/server/trpcClient';
+import { GameRoom, roomManager } from './roomManager';
 
 export function useRoomEvents(roomId: string) {
   const [room, setRoom] = useState<GameRoom | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Use tRPC to get room data with polling for real-time updates
-  const { data: roomData, error: trpcError, isLoading } = trpc.room.getRoom.useQuery(
-    { roomId },
-    { 
-      enabled: !!roomId,
-      refetchInterval: 1000, // Poll every second for real-time updates
-      refetchOnWindowFocus: true,
-      retry: 3,
-      retryDelay: 1000
-    }
-  );
+  // Deprecated tRPC hook removed; keep a minimal local lookup for compatibility
+  const roomData = roomManager.getRoom(roomId);
+  const trpcError = null as any;
+  const isLoading = false;
 
   useEffect(() => {
     if (!roomId) return;
