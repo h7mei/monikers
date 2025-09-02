@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import QRCode from 'qrcode';
 
 interface Props {
@@ -46,7 +47,13 @@ export default function QRCodeDisplay({ roomId, className = '' }: Props) {
   return (
     <div className={`flex flex-col items-center ${className}`}>
       <div className="bg-white p-4 rounded-lg shadow-lg">
-        <img src={qrDataUrl} alt="Room QR Code" className="w-48 h-48" />
+        <Image
+          src={qrDataUrl}
+          alt="Room QR Code"
+          width={192}
+          height={192}
+          className="w-48 h-48"
+        />
       </div>
       <div className="mt-4 text-center">
         <p className="text-sm text-gray-400 mb-2">Room Code:</p>

@@ -10,14 +10,18 @@ export function useRoomEvents(roomId: string) {
   const [error, setError] = useState<string | null>(null);
 
   // Use tRPC to get room data with polling for real-time updates
-  const { data: roomData, error: trpcError, isLoading } = trpc.room.getRoom.useQuery(
+  const {
+    data: roomData,
+    error: trpcError,
+    isLoading,
+  } = trpc.room.getRoom.useQuery(
     { roomId },
-    { 
+    {
       enabled: !!roomId,
       refetchInterval: 1000, // Poll every second for real-time updates
       refetchOnWindowFocus: true,
       retry: 3,
-      retryDelay: 1000
+      retryDelay: 1000,
     }
   );
 
