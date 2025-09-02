@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
+// update to supabase
+
 // Import Card type from GameScreen
 export interface Card {
   id: string;
