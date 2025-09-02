@@ -68,7 +68,6 @@ export default function WaitingPage({ params, searchParams }: Props) {
 
   const handleCardSelectionComplete = () => {
     // The game will automatically transition to 'playing' state
-    // when all players have selected their cards
   };
 
   const handleGameEnd = () => {
